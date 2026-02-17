@@ -233,7 +233,7 @@
         <div class="sections-container">
             <div class="section" id="download-section">
                 <div class="section-header">
-                    <h2>Get ByteMagic™</h2>
+                    <h2><b>Get ByteMagic™</b></h2>
                 </div>
                 <div class="section-content">
                     <p>Ready to revolutionize your Roblox experience? Download ByteMagic™ now and unlock unprecedented innovation and gameplay enhancements. <b>ByteMagic</b> Is only made for <b>Windows 10/11</b> and is compiled to run on <b>Any</b> CPU.</p>
@@ -356,7 +356,16 @@
                 <div class="section-content">
                     <h2>Discord: <a href="https://discord.gg/WMjeg3szAt" target="_blank" class="glow-link"><b> [View/Join Discord Server]</b></a></h2>
                 </div>
-        </div>
+            </div>
+             <div class="section" id="donate-section">
+                <div class="section-header">
+                    <h2>Donate/Support</h2>
+                </div>
+                <div class="section-content">
+                    <h1>Coming soon</h1>
+                    <p class="subtitle">Donate to the developer of ByteMagic™</p>
+                </div>
+            </div>
 
         <footer>
             <p>&copy; 2026 ByteMagic™. All rights reserved.</p>
@@ -368,7 +377,6 @@
 
         // finally fixed bro finally
         sections.forEach(section => {
-            // Click to toggle
             section.addEventListener('click', function(e) {
                 if (e.target.closest('.download-btn') || e.target.closest('a')) return;
                 this.classList.toggle('expanded');
@@ -392,7 +400,7 @@
         }
 
         function createParticles() {
-            for (let i = 0; i < 150; i++) { // Reduced count for better performance
+            for (let i = 0; i < 150; i++) {
                 const particle = document.createElement('div');
                 particle.className = 'particle';
                 particle.style.left = Math.random() * 100 + '%';
