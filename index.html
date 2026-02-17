@@ -238,13 +238,21 @@
                 <div class="section-content">
                     <p>Ready to revolutionize your Roblox experience? Download ByteMagic™ now and unlock unprecedented innovation and gameplay enhancements. <b>ByteMagic</b> Is only made for <b>Windows 10/11</b> and is compiled to run on <b>Any</b> CPU.</p>
                     <a href="#" class="download-btn" onclick="handleDownload(event)">Download ByteMagic™</a>
-
+                    <div class="requirements">
+                     <p><b>System Requirements:</b></p>
+                      <ul>
+                      <li>64-bit Windows 10/11</li>
+                      <li>2+ GB RAM</li>
+                      <li>2008+ CPU</li>
+                    </ul>
+                    </div>
+                    <br><a href="#" class="download-btn" onclick="handleGuiDownload(event)">Download ByteMagic™ GUI version</a>
                     <div class="requirements">
                      <p><b>System Requirements:</b></p>
                       <ul>
                       <li>64-bit Windows 10/11</li>
                       <li>3+ GB RAM</li>
-                      <li>2008+ CPU</li>
+                      <li>2012+ CPU</li>
                     </ul>
                     </div>
                 </div>
@@ -304,7 +312,16 @@
                             </style>
 
                             <p>------------------------------------------------------------------</p>
-
+                            <img src="https://cdn.discordapp.com/avatars/1226660017596272681/4605b5595f3bc6bb142959f497b539c1.webp?size=256" alt="Avatar">
+                            <h2>@java_edition43 <br></h2>
+                            <h3>ByteMagic GUI creator</h3>
+                            <br>
+                            <p>Quote from Java: "k but seriously why is c++ so long to code but like atleast i made a good ui"</p>
+                            <p>ANOTHER Quote from Java: "i like dll's because they are dll's"</p>
+                             <a href="https://discord.com/users/1226660017596272681" target="_blank" class="glow-link">
+                                <b>View Discord Profile</b>
+                            </a>
+                            <p>------------------------------------------------------------------</p>
                             <img src="https://cdn.discordapp.com/avatars/1183106930554703934/ebc76f818511ddb1747cc52da33d67cd.webp?size=256" alt="Avatar">
                             <h3>@pwningmaster</h3>
                             <p>---------</p>
@@ -315,6 +332,7 @@
                             <a href="https://discord.com/users/1183106930554703934" target="_blank" class="glow-link">
                                 <b>View Discord Profile</b>
                             </a>
+                            <p>---------</p>
                         </div>
                         
                         <p style="margin-top: 20px; font-style: italic; color: #9ca3af;">--------------------</p>
@@ -397,6 +415,11 @@
             event.preventDefault();
             event.stopPropagation();
             alert('Download will be available soon! ByteMagic™ is coming to revolutionize your Roblox experience.');
+        }
+        function handleGuiDownload(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            alert('The GUI version is still work in progress! ByteMagic™-GUI is coming to revolutionize your Roblox experience.');
         }
 
         function createParticles() {
