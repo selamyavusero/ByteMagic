@@ -1,1294 +1,671 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ByteMagic Documentation</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Raleway:wght@300;400;500;600&display=swap');
-
-  :root {
-    --bg-dark: #0a0a0a;
-    --purple-deep: #2b124a;
-    --purple-mid: #4a1a7a;
-    --purple-bright: #8b2fc9;
-    --purple-glow: #bf5af2;
-    --purple-light: #d4a8ff;
-    --crystal-shine: #e8d5ff;
-    --accent: #c77dff;
-    --glass-bg: rgba(43, 18, 74, 0.35);
-    --glass-border: rgba(191, 90, 242, 0.25);
-    --glass-border-bright: rgba(191, 90, 242, 0.6);
-    --text-main: #f0e6ff;
-    --text-muted: #a08abf;
-    --shadow-purple: rgba(139, 47, 201, 0.4);
-  }
-
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  html { scroll-behavior: smooth; }
-
-  body {
-    font-family: 'Raleway', sans-serif;
-    background: linear-gradient(135deg, #0a0a0a 0%, #2b124a 50%, #0a0a0a 100%);
-    background-attachment: fixed;
-    color: var(--text-main);
-    min-height: 100vh;
-    overflow-x: hidden;
-    cursor: none;
-  }
-
-  /* ============================================================
-     CUSTOM CURSOR
-  ============================================================ */
-  #cursor {
-    position: fixed;
-    width: 12px; height: 12px;
-    border-radius: 50%;
-    background: var(--purple-glow);
-    box-shadow: 0 0 12px var(--purple-glow), 0 0 24px var(--purple-bright);
-    pointer-events: none;
-    z-index: 9999;
-    transform: translate(-50%, -50%);
-    transition: transform 0.05s, width 0.2s, height 0.2s, opacity 0.2s;
-  }
-  #cursor-ring {
-    position: fixed;
-    width: 36px; height: 36px;
-    border-radius: 50%;
-    border: 1.5px solid rgba(191, 90, 242, 0.5);
-    pointer-events: none;
-    z-index: 9998;
-    transform: translate(-50%, -50%);
-    transition: transform 0.12s ease-out, width 0.2s, height 0.2s;
-  }
-
-  /* ============================================================
-     ANIMATED CRYSTAL BACKGROUND CANVAS
-  ============================================================ */
-  #bg-canvas {
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-  }
-
-  /* ============================================================
-     LAYOUT
-  ============================================================ */
-  .page-wrapper {
-    position: relative;
-    z-index: 1;
-    display: grid;
-    grid-template-columns: 260px 1fr;
-    grid-template-rows: 64px 1fr;
-    min-height: 100vh;
-  }
-
-  /* ============================================================
-     TOPBAR
-  ============================================================ */
-  .topbar {
-    grid-column: 1 / -1;
-    grid-row: 1;
-    display: flex;
-    align-items: center;
-    padding: 0 32px;
-    gap: 24px;
-    background: rgba(10, 10, 10, 0.7);
-    backdrop-filter: blur(20px);
-    border-bottom: 1px solid var(--glass-border);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-
-  .topbar-logo {
-    font-family: 'Cinzel', serif;
-    font-size: 1.2rem;
-    font-weight: 700;
-    background: linear-gradient(90deg, var(--purple-glow), var(--crystal-shine));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    letter-spacing: 0.08em;
-    text-decoration: none;
-    white-space: nowrap;
-  }
-
-  .topbar-search {
-    flex: 1;
-    max-width: 420px;
-    margin-left: auto;
-    position: relative;
-  }
-
-  .topbar-search input {
-    width: 100%;
-    padding: 8px 16px 8px 40px;
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    border-radius: 8px;
-    color: var(--text-main);
-    font-family: 'Raleway', sans-serif;
-    font-size: 0.85rem;
-    outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
-  }
-
-  .topbar-search input::placeholder { color: var(--text-muted); }
-  .topbar-search input:focus {
-    border-color: var(--purple-glow);
-    box-shadow: 0 0 0 3px rgba(191, 90, 242, 0.15);
-  }
-
-  .topbar-search svg {
-    position: absolute;
-    left: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--text-muted);
-    width: 16px; height: 16px;
-  }
-
-  .topbar-nav {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-left: 16px;
-  }
-
-  .topbar-nav a {
-    font-size: 0.82rem;
-    font-weight: 500;
-    color: var(--text-muted);
-    text-decoration: none;
-    padding: 6px 14px;
-    border-radius: 6px;
-    transition: color 0.2s, background 0.2s;
-    letter-spacing: 0.03em;
-  }
-
-  .topbar-nav a:hover {
-    color: var(--text-main);
-    background: var(--glass-bg);
-  }
-
-  .topbar-nav a.active {
-    color: var(--purple-glow);
-    background: rgba(191, 90, 242, 0.1);
-  }
-
-  .topbar-btn {
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: var(--bg-dark);
-    background: linear-gradient(135deg, var(--purple-bright), var(--purple-glow));
-    border: none;
-    padding: 7px 18px;
-    border-radius: 7px;
-    cursor: pointer;
-    text-decoration: none;
-    letter-spacing: 0.04em;
-    box-shadow: 0 0 12px rgba(191, 90, 242, 0.4);
-    transition: box-shadow 0.2s, transform 0.15s;
-  }
-  .topbar-btn:hover {
-    box-shadow: 0 0 24px rgba(191, 90, 242, 0.7);
-    transform: translateY(-1px);
-  }
-
-  /* ============================================================
-     SIDEBAR
-  ============================================================ */
-  
-
-
-
-  /* ============================================================
-     MAIN CONTENT
-  ============================================================ */
-  .main {
-    grid-column: 2;
-    grid-row: 2;
-    padding: 48px 56px 80px;
-    max-width: 860px;
-  }
-
-  /* ---- Breadcrumb ---- */
-  .breadcrumb {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.78rem;
-    color: var(--text-muted);
-    margin-bottom: 28px;
-  }
-
-  .breadcrumb a {
-    color: var(--text-muted);
-    text-decoration: none;
-    transition: color 0.2s;
-  }
-  .breadcrumb a:hover { color: var(--purple-glow); }
-
-  .breadcrumb-sep {
-    color: var(--purple-mid);
-    font-size: 0.7rem;
-  }
-
-  .breadcrumb-current { color: var(--purple-glow); }
-
-  /* ---- Page Header ---- */
-  .page-header { margin-bottom: 40px; }
-
-  .page-tag {
-    display: inline-block;
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--purple-glow);
-    background: rgba(191, 90, 242, 0.12);
-    border: 1px solid rgba(191, 90, 242, 0.3);
-    padding: 3px 12px;
-    border-radius: 20px;
-    margin-bottom: 14px;
-  }
-
-  .page-title {
-    font-family: 'Cinzel', serif;
-    font-size: 2.4rem;
-    font-weight: 700;
-    line-height: 1.2;
-    background: linear-gradient(120deg, var(--crystal-shine) 0%, var(--purple-glow) 60%, var(--purple-light) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    margin-bottom: 14px;
-  }
-
-  .page-subtitle {
-    font-size: 1.05rem;
-    font-weight: 300;
-    color: var(--text-muted);
-    line-height: 1.6;
-    max-width: 600px;
-  }
-
-  /* ---- Crystal Card (copy-paste block for sections) ---- */
-  /* TO ADD A NEW SECTION: copy one .crystal-card block */
-  .crystal-card {
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    border-radius: 14px;
-    padding: 32px;
-    margin-bottom: 28px;
-    position: relative;
-    overflow: hidden;
-    transition: border-color 0.3s, box-shadow 0.3s;
-  }
-
-  .crystal-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(191, 90, 242, 0.6), transparent);
-  }
-
-  .crystal-card::after {
-    content: '';
-    position: absolute;
-    top: -60px; right: -60px;
-    width: 140px; height: 140px;
-    background: radial-gradient(circle, rgba(139, 47, 201, 0.12) 0%, transparent 70%);
-    pointer-events: none;
-  }
-
-  .crystal-card:hover {
-    border-color: var(--glass-border-bright);
-    box-shadow: 0 8px 40px rgba(139, 47, 201, 0.2), inset 0 1px 0 rgba(255,255,255,0.04);
-  }
-
-  .card-title {
-    font-family: 'Cinzel', serif;
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: var(--crystal-shine);
-    margin-bottom: 14px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .card-title-icon {
-    width: 28px; height: 28px;
-    background: linear-gradient(135deg, var(--purple-bright), var(--purple-glow));
-    border-radius: 7px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.75rem;
-    color: #fff;
-    box-shadow: 0 0 10px rgba(191, 90, 242, 0.4);
-    flex-shrink: 0;
-  }
-
-  .card-body {
-    font-size: 0.9rem;
-    font-weight: 300;
-    color: var(--text-muted);
-    line-height: 1.75;
-  }
-
-  .card-body p + p { margin-top: 10px; }
-
-  /* ---- Inline Code ---- */
-  code {
-    font-family: 'Courier New', monospace;
-    font-size: 0.82em;
-    background: rgba(139, 47, 201, 0.18);
-    border: 1px solid rgba(191, 90, 242, 0.2);
-    color: var(--purple-light);
-    padding: 1px 6px;
-    border-radius: 5px;
-  }
-
-  /* ---- Code Block ---- */
-  .code-block {
-    background: rgba(5, 5, 15, 0.75);
-    border: 1px solid var(--glass-border);
-    border-radius: 10px;
-    margin: 16px 0;
-    overflow: hidden;
-  }
-
-  .code-block-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 18px;
-    border-bottom: 1px solid var(--glass-border);
-    background: rgba(43, 18, 74, 0.3);
-  }
-
-  .code-block-lang {
-    font-size: 0.72rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--purple-glow);
-  }
-
-  .code-block-dots { display: flex; gap: 6px; }
-  .code-block-dots span {
-    width: 10px; height: 10px; border-radius: 50%;
-    background: rgba(191, 90, 242, 0.25);
-  }
-
-  .code-block pre {
-    padding: 18px 20px;
-    font-family: 'Courier New', monospace;
-    font-size: 0.83rem;
-    color: var(--text-main);
-    overflow-x: auto;
-    line-height: 1.65;
-    white-space: pre;
-  }
-
-  /* ---- Alert / Callout ---- */
-  /* TO ADD A NEW CALLOUT: copy one .callout block and change --callout-color */
-  .callout {
-    --callout-color: var(--purple-glow);
-    display: flex;
-    gap: 14px;
-    padding: 18px 20px;
-    background: rgba(43, 18, 74, 0.4);
-    border-left: 3px solid var(--callout-color);
-    border-radius: 0 10px 10px 0;
-    margin: 18px 0;
-  }
-
-  .callout.callout-warn { --callout-color: #e6a817; }
-  .callout.callout-danger { --callout-color: #e05252; }
-  .callout.callout-success { --callout-color: #52e07c; }
-
-  .callout-icon {
-    font-size: 1.1rem;
-    flex-shrink: 0;
-    margin-top: 1px;
-  }
-
-  .callout-text {
-    font-size: 0.87rem;
-    font-weight: 400;
-    color: var(--text-muted);
-    line-height: 1.65;
-  }
-
-  .callout-text strong {
-    color: var(--callout-color);
-    font-weight: 600;
-  }
-
-  /* ---- Property / Param Table ---- */
-  .prop-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.85rem;
-    margin: 16px 0;
-  }
-
-  .prop-table thead tr {
-    border-bottom: 1px solid var(--glass-border);
-  }
-
-  .prop-table th {
-    text-align: left;
-    padding: 10px 14px;
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--purple-glow);
-  }
-
-  .prop-table td {
-    padding: 10px 14px;
-    color: var(--text-muted);
-    border-bottom: 1px solid rgba(191, 90, 242, 0.08);
-    vertical-align: top;
-    line-height: 1.55;
-  }
-
-  .prop-table tbody tr:hover td {
-    background: rgba(191, 90, 242, 0.05);
-    color: var(--text-main);
-  }
-
-  .prop-table td:first-child { color: var(--purple-light); font-family: 'Courier New', monospace; font-size: 0.82em; }
-
-  .prop-type {
-    display: inline-block;
-    font-family: 'Courier New', monospace;
-    font-size: 0.78em;
-    color: var(--accent);
-    background: rgba(139, 47, 201, 0.12);
-    padding: 1px 7px;
-    border-radius: 4px;
-    border: 1px solid rgba(191, 90, 242, 0.15);
-  }
-
-  /* ---- Section Divider ---- */
-  .section-divider {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    margin: 40px 0 32px;
-  }
-
-  .section-divider-label {
-    font-family: 'Cinzel', serif;
-    font-size: 1.3rem;
-    font-weight: 600;
-    color: var(--crystal-shine);
-    white-space: nowrap;
-  }
-
-  .section-divider-line {
-    flex: 1;
-    height: 1px;
-    background: linear-gradient(90deg, var(--glass-border-bright), transparent);
-  }
-
-  /* ---- Step List ---- */
-  /* TO ADD STEPS: copy .step blocks inside .steps-list */
-  .steps-list { counter-reset: step-counter; margin: 16px 0; }
-
-  .step {
-    display: flex;
-    gap: 18px;
-    margin-bottom: 20px;
-    counter-increment: step-counter;
-    align-items: flex-start;
-  }
-
-  .step-num {
-    width: 32px; height: 32px;
-    flex-shrink: 0;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--purple-bright), var(--purple-glow));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: 'Cinzel', serif;
-    font-size: 0.8rem;
-    font-weight: 700;
-    color: #fff;
-    box-shadow: 0 0 12px rgba(191, 90, 242, 0.5);
-    margin-top: 2px;
-  }
-
-  .step-content { flex: 1; }
-
-  .step-title {
-    font-weight: 600;
-    font-size: 0.92rem;
-    color: var(--text-main);
-    margin-bottom: 4px;
-  }
-
-  .step-desc {
-    font-size: 0.85rem;
-    color: var(--text-muted);
-    line-height: 1.6;
-  }
-
-  /* ---- Grid Cards (feature overview) ---- */
-  /* TO ADD FEATURES: copy .feature-card blocks inside .features-grid */
-  .features-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
-    gap: 16px;
-    margin: 16px 0;
-  }
-
-  .feature-card {
-    background: rgba(43, 18, 74, 0.3);
-    border: 1px solid var(--glass-border);
-    border-radius: 12px;
-    padding: 20px;
-    transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
-    cursor: default;
-  }
-
-  .feature-card:hover {
-    border-color: var(--glass-border-bright);
-    transform: translateY(-3px);
-    box-shadow: 0 12px 32px rgba(139, 47, 201, 0.2);
-  }
-
-  .feature-icon {
-    font-size: 1.4rem;
-    margin-bottom: 10px;
-  }
-
-  .feature-title {
-    font-family: 'Cinzel', serif;
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--crystal-shine);
-    margin-bottom: 6px;
-  }
-
-  .feature-desc {
-    font-size: 0.78rem;
-    color: var(--text-muted);
-    line-height: 1.55;
-  }
-
-  /* ---- On This Page (right sidebar toc, optional) ---- */
-  /* In this layout it's omitted for simplicity — add as a third column if needed */
-
-  /* ---- Footer ---- */
-  .doc-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding-top: 32px;
-    margin-top: 20px;
-    border-top: 1px solid var(--glass-border);
-    font-size: 0.8rem;
-    color: var(--text-muted);
-  }
-
-  .doc-footer a {
-    color: var(--text-muted);
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: color 0.2s;
-  }
-  .doc-footer a:hover { color: var(--purple-glow); }
-
-  /* ============================================================
-     CRYSTAL GEOMETRY (decorative)
-  ============================================================ */
-  .crystal-geo {
-    position: fixed;
-    pointer-events: none;
-    z-index: 0;
-    opacity: 0.06;
-  }
-
-  /* ============================================================
-     SCROLLBAR
-  ============================================================ */
-  ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--purple-mid); border-radius: 4px; }
-
-  /* ============================================================
-     RESPONSIVE
-  ============================================================ */
-  @media (max-width: 780px) {
-    .page-wrapper { grid-template-columns: 1fr; }
-    .main { grid-column: 1; padding: 32px 24px 60px; }
-    .topbar-nav { display: none; }
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ByteMagic™ - Roblox Executor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #2b124a 50%, #0a0a0a 100%);
+            background-attachment: fixed;
+            color: #ffffff;
+            min-height: 100vh;
+            overflow-x: hidden;
+            cursor: none;
+        }
+
+        /* ---- Custom Cursor ---- */
+        #cursor {
+            position: fixed;
+            width: 12px; height: 12px;
+            border-radius: 50%;
+            background: #bf5af2;
+            box-shadow: 0 0 12px #bf5af2, 0 0 24px #8b2fc9;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            transition: width 0.2s, height 0.2s, opacity 0.2s;
+        }
+        #cursor-ring {
+            position: fixed;
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            border: 1.5px solid rgba(191, 90, 242, 0.5);
+            pointer-events: none;
+            z-index: 9998;
+            transform: translate(-50%, -50%);
+            transition: width 0.2s, height 0.2s;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 60px 20px 40px;
+            position: relative;
+        }
+
+        .logo {
+            font-size: 4em;
+            font-weight: bold;
+            background: linear-gradient(135deg, #8decff, #ffffff, #0011ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+            text-shadow: 0 0 30px rgb(214, 171, 255);
+            animation: glow 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { filter: drop-shadow(0 0 10px rgb(255, 255, 255)); }
+            to { filter: drop-shadow(0 0 20px rgb(187, 114, 255)); }
+        }
+
+        .tagline {
+            font-size: 1.5em;
+            color: #c084fc;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+
+        .subtitle {
+            font-size: 1.1em;
+            color: #9ca3af;
+            font-style: italic;
+        }
+
+        .sections-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-top: 50px;
+        }
+
+        .section {
+            background: rgba(26, 10, 46, 0.6);
+            border: 2px solid rgba(168, 85, 247, 0.3);
+            border-radius: 15px;
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.4s ease;
+            box-shadow: 0 4px 20px rgba(168, 85, 247, 0.2);
+            cursor: pointer;
+        }
+
+        .section-header {
+            padding: 25px 30px;
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(236, 72, 153, 0.1));
+            border-bottom: 2px solid rgba(168, 85, 247, 0.2);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .section-header h2 {
+            font-size: 1.8em;
+            color: #e9d5ff;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .section-header::after {
+            content: '▼';
+            position: absolute;
+            right: 30px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.7em;
+            color: #a855f7;
+            transition: transform 0.3s ease;
+        }
+
+        .section.expanded .section-header::after {
+            transform: translateY(-50%) rotate(180deg);
+        }
+
+        .section-content {
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 0 30px;
+        }
+
+        .section.expanded .section-content {
+            max-height: 10000px; 
+            opacity: 1;
+            padding: 30px;
+        }
+
+        .section-content p {
+            font-size: 1.1em;
+            line-height: 1.8;
+            color: #d1d5db;
+            margin-bottom: 20px;
+        }
+
+        .download-btn {
+            display: inline-block;
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #a855f7, #ec4899);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-size: 1.2em;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 25px rgba(168, 85, 247, 0.4);
+            border: 2px solid transparent;
+            margin-top: 10px;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 35px rgba(168, 85, 247, 0.6);
+            border-color: #e9d5ff;
+        }
+
+        .discord-card {
+            text-align: center;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .discord-card img {
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #a855f7;
+            box-shadow: 0 0 25px rgba(168, 85, 247, 0.4);
+            margin-bottom: 15px;
+        }
+
+        .download-container {
+         padding: 20px 20px 0 20px;
+        }
+
+        .requirements {
+        margin-top: 20px;
+        color: #d1d5db;
+        font-size: 0.95em;
+        }
+
+        .requirements ul {
+         list-style: none;
+         padding-left: 20px;
+          margin: 5px 0;
+        }
+
+         .requirements li::before {
+              content: "•";
+              color: #a855f7;
+           display: inline-block;
+            width: 1em;
+         }
+
+
+        .particle {
+            position: fixed;
+            width: 3px;
+            height: 3px;
+            background: rgba(168, 85, 247, 0.6);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: float 6s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0); opacity: 0; }
+            50% { opacity: 1; }
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            margin-top: 60px;
+            border-top: 1px solid rgba(168, 85, 247, 0.2);
+            color: #6b7280;
+        }
+
+        @media (max-width: 768px) {
+            .logo { font-size: 2.5em; }
+            .section-header h2 { font-size: 1.4em; }
+        }
+    </style>
 </head>
-<body>
+<body style="background-color: #0a0a0a;">
 
-<!-- Custom Cursor -->
-<div id="cursor"></div>
-<div id="cursor-ring"></div>
+    <!-- Custom Cursor -->
+    <div id="cursor"></div>
+    <div id="cursor-ring"></div>
 
-<!-- Animated Background Canvas -->
-<canvas id="bg-canvas"></canvas>
+    <div class="container">
+        <header>
+            <h1 class="logo">ByteMagic™</h1>
+            <p class="tagline">Drastically improves Roblox innovation and Gameplay</p>
+            <p class="subtitle">Experience the <b>Future</b> of <b>Roblox Exploiting</b></p>
+        </header>
 
-<!-- ============================================================
-     PAGE WRAPPER
-============================================================ -->
-<div class="page-wrapper">
+        <div class="sections-container">
+            <div class="section" id="download-section">
+                <div class="section-header">
+                    <h2><b>Get ByteMagic™</b></h2>
+                </div>
+                <div class="section-content">
+                    <p>Ready to revolutionize your Roblox experience? Download ByteMagic™ now and unlock unprecedented innovation and gameplay enhancements. <b>ByteMagic</b> Is only made for <b>Windows 10/11</b> and is compiled to run on <b>Any</b> CPU.</p>
+                    <a href="#" class="download-btn" onclick="handleDownload(event)">Download ByteMagic™</a>
+                    <div class="requirements">
+                     <p><b>System Requirements:</b></p>
+                      <ul>
+                      <li>64-bit Windows 10/11</li>
+                      <li>2+ GB RAM</li>
+                      <li>2008+ CPU</li>
+                    </ul>
+                    </div>
+                    <br><a href="#" class="download-btn" onclick="handleGuiDownload(event)">Download ByteMagic™ GUI version</a>
+                    <div class="requirements">
+                     <p><b>System Requirements:</b></p>
+                      <ul>
+                      <li>64-bit Windows 10/11</li>
+                      <li>3+ GB RAM</li>
+                      <li>2012+ CPU</li>
+                    </ul>
+                    </div>
+                </div>
+            </div>
 
-  <!-- ========== TOPBAR ========== -->
-  <header class="topbar">
-    <a href="#" class="topbar-logo">◆ BYTEMAGIC™</a>
+            <div class="section" id="about-section">
+                <div class="section-header">
+                    <h2>About</h2>
+                </div>
+                <div class="section-content">
+                    <p><u>ByteMagic</u> is a fast and minimal Roblox Script Execution Tool inspired by old Level 1 ByteCode console script executors. ByteMagic mimics that aesthetic while also being <b>Advanced</b>. It's the easiest to use, least demanding executor you will ever find. Since it's a minimalist console application, it uses the oldest tricks in the book of Roblox exploiting, enhanced to <u>bypass</u> modern security like Hyperion.</p>
+                    <p>Fast, Minimal, and <b>Secure</b>. Introducing ByteMagic™</p>
 
-    <!-- ---- NAV LINKS (copy .topbar-nav a blocks to add pages) ---- -->
-    <nav class="topbar-nav">
-      <h4>Bytemagic's Official Documentation</h4>
-    </nav>
+                    <br><a href="documentation.html" class="download-btn" >ByteMagic™ DOCUMENTATION Webpage</a>
+                </div>
+            </div>
 
-    <!-- Search -->
-    <div class="topbar-search">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-      </svg>
-      <input type="text" placeholder="Search >">
-    </div>
+            <div class="section" id="developers-section">
+                <div class="section-header">
+                    <h2>Contributors</h2>
+                </div>
+                <div class="section-content">
+                    <div class="empty-state" style="text-align: center;">
+                        <p>There are currently 2 Developers and 1 Tester.</p>
+                        <div class="discord-card">
+                            <img src="https://cdn.discordapp.com/avatars/1321145117637349473/ea6e7d87a6b627f75c5456db07bab202.png?size=256" alt="Avatar">
+                            <h2>@salamidev</h2>
+                            <p>ByteMagic™ Creator & WebPage Designer</p>
+                            <br>
+                            <a href="https://discord.com/users/1321145117637349473" target="_blank" class="glow-link">
+                                <b>View Discord Profile <br></b>
+                            </a>
+                            <a href="https://guns.lol/salamidev" target="_blank" class="glow-link">
+                                <b>View Guns.lol Profile</b>
+                            </a>
 
-    <a href="#" class="topbar-btn">docs</a>
-  </header>
+                            <style>
+                            .glow-link {
+                            color: #ffffff;
+                             text-decoration: none;
+                                text-shadow: 0 0 5px #a855f7, 0 0 10px #ec4899, 0 0 15px #8b5cf6;
+                                     transition: all 0.3s ease;
+                                         font-weight: bold;
+                                             animation: glow 2s ease-in-out infinite alternate;
+                                    }
 
+                            @keyframes glow {
+                                 from {
+                                        text-shadow: 0 0 5px #a855f7, 0 0 10px #ec4899, 0 0 15px #8b5cf6;
+                                  }
+                                          to {
+                                text-shadow: 0 0 15px #a855f7, 0 0 25px #ec4899, 0 0 35px #8b5cf6;
+                                  }
+                                }
 
-  <!-- ========== MAIN ========== -->
-  <main class="main">
-
-    <!-- Breadcrumb -->
-    <nav class="breadcrumb">
-      <a href="#">Simple</a>
-      <span class="breadcrumb-sep">›</span>
-      <a href="#">Fast</a>
-      <span class="breadcrumb-sep">›</span>
-      <span class="breadcrumb-current">Secure</span>
-    </nav>
-
-    <!-- Page Header -->
-    <header class="page-header">
-      <span class="page-tag">🕮 Docs</span>
-      <h1 class="page-title">ByteMagic™ Documentation 🕮</h1>
-      <p class="page-subtitle">Learn about how the ByteMagic™ Execution Engine Works under the Hood.</p>
-    </header>
-
-    <!-- ============================================================
-         SECTION DIVIDER — copy for new sections
-    ============================================================ -->
-    <div class="section-divider">
-      <span class="section-divider-label">docs</span>
-      <div class="section-divider-line"></div>
-    </div>
-
-    <!-- ============================================================
-         crystal cards. 1
-    ============================================================ -->
-    <div class="crystal-card">
-      <h2 class="card-title">
-        <div class="card-title-icon">◆</div>
-        Libraries
-      </h2>
-      <div class="card-body">
-        <p>Learn about how the ByteMagic™ Execution engine works under the hood.</p>
-        <p>A little roadmap: <code>Functions > Attachment > Smart-Byte-Sacrifising > Execution</code> </p>
-      </div>
-
-      <div class="callout">
-        <span class="callout-icon">◈</span>
-        <div class="Something to acknowledge:"><strong>These are just snippets! You cant make bytemagic yourself with just this.</strong> — </div>
-      </div>
-
-      <!-- Code Block -->
-       <div class="callout">
-        <span class="callout-icon">?</span>
-        <div class="Something to acknowledge:"><strong>This is every single Microsoft windows library Bytemagic uses:</strong></div>
-       </div>
-      <div class="code-block">
-        <div class="code-block-header">
-          <span class="code-block-lang">Includes</span>
-          <div class="code-block-dots"><span></span><span></span><span></span></div>
-        </div>
-        <pre>#include &lt;iostream&gt;
-#include &lt;string&gt;
-#define WIN32_LEAN_AND_MEAN
-#include &lt;Windows.h&gt;
-#include &lt;thread&gt;
-#include &lt;ColorDlg.h&gt;
-#include &lt;memoryapi.h&gt;
-#include &lt;chrono&gt;
-#include &lt;processthreadsapi.h&gt;
-#include &lt;tlhelp32.h&gt;
-#include &lt;process.h&gt;
-#include &lt;memory&gt;
-#include &lt;vector&gt;
-#include &lt;iomanip&gt;
-#include &lt;sstream&gt;
-#include &lt;fstream&gt;
-#include &lt;shellapi.h&gt;
-#include &lt;cstdio&gt;
-#include &lt;dwmapi.h&gt;
-#include &lt;map&gt;
-</pre>
-      </div>
-    </div>
-
-    <!-- 2-->
-
-    <div class="crystal-card">
-      <h2 class="card-title">
-        <div class="card-title-icon">◆</div>
-        Attachment Logic 
-        <div class="callout">
-        <span class="callout-icon">!</span>
-        <div class="Something to acknowledge:"><strong>OUTDATED</strong>  </div>
-      </div>
-      </h2>
-      <div class="card-body">
-        <p>Learn about how the ByteMagic™ Execution engine works under the hood.</p>
-        <p>A little roadmap: <code>Functions > Attachment > Smart-Byte-Sacrifising > Execution</code> </p>
-      </div>
-
-      <div class="callout">
-        <span class="callout-icon">◈</span>
-        <div class="Something to acknowledge:"><strong>This is NOT the latest attachment logic. This is a rough sketch we made when starting this project. We unfortunately can't share the REAL attachment logic to keep Roblox away from patching our ways.</strong>  </div>
-      </div>
-
-      <!-- Code Block -->
-      <div class="code-block">
-        <div class="code-block-header">
-          <span class="code-block-lang">Attachment</span>
-          <div class="code-block-dots"><span></span><span></span><span></span></div>
-        </div>
-        <pre>uintptr_t FindLuaSignature(HANDLE hProcess) {
-    SYSTEM_INFO si;
-    GetSystemInfo(&si);
-
-    MEMORY_BASIC_INFORMATION mbi;
-    uintptr_t addr = (uintptr_t)si.lpMinimumApplicationAddress;
-
-    unsigned char magic[] = { 0x1B, 0x4C, 0x55, 0x41, 0x55 };
-    size_t magicSize = sizeof(magic);
-
-    while (addr < (uintptr_t)si.lpMaximumApplicationAddress) {
-        if (VirtualQueryEx(hProcess, (LPCVOID)addr, &mbi, sizeof(mbi))) {
-            if (mbi.State == MEM_COMMIT && (mbi.Protect & PAGE_READWRITE || mbi.Protect & PAGE_READONLY)) {
-                std::vector<unsigned char> buffer(mbi.RegionSize);
-                SIZE_T bytesRead;
-
-                if (ReadProcessMemory(hProcess, mbi.BaseAddress, buffer.data(), mbi.RegionSize, &bytesRead)) {
-                    for (size_t i = 0; i < bytesRead - magicSize; i++) {
-                        bool found = true;
-                        for (size_t j = 0; j < magicSize; j++) {
-                            if (buffer[i + j] != magic[j]) {
-                                found = false;
-                                break;
+                            .glow-link:hover {
+                                  transform: scale(1.05);
                             }
-                        }
-                        if (found) {
-                            return (uintptr_t)mbi.BaseAddress + i;
-                        }
-                    }
-                }
-            }
-            addr += mbi.RegionSize;
+                            </style>
+
+                            <p>------------------------------------------------------------------</p>
+                            <img src="https://cdn.discordapp.com/avatars/1226660017596272681/4605b5595f3bc6bb142959f497b539c1.webp?size=256" alt="Avatar">
+                            <h2>@java_edition43 <br></h2>
+                            <h3>ByteMagic GUI creator</h3>
+                            <br>
+                            <p>Quote from Java: "k but seriously why is c++ so long to code but like atleast i made a good ui"</p>
+                            <p>ANOTHER Quote from Java: "i like dll's because they are dll's"</p>
+                            <a href="https://discord.com/users/1226660017596272681" target="_blank" class="glow-link">
+                                <b>View Discord Profile</b>
+                            </a>
+                            <br>
+                            <a href="https://www.roblox.com/users/4078183024/profile" target="_blank" class="glow-link">
+                                <b>View Roblox Profile</b>
+                            </a>
+                            <p>------------------------------------------------------------------</p>
+                            <img src="https://cdn.discordapp.com/avatars/1183106930554703934/ebc76f818511ddb1747cc52da33d67cd.webp?size=256" alt="Avatar">
+                            <h3>@pwningmaster</h3>
+                            <p>---------</p>
+                            <p>Earliest Version Tester and Tester of <b>EVERY</b> ByteMagic version</p>
+                            <p>Proved that <b>ByteMagic</b> works on every computer with just a single .exe</p>
+                            <p>Y'all pray to <b>@pwningmaster</b> for real.</p>
+                            <h6>Quote from pwningmaster: "Okay tho how is it so simple while still working perfectly?? <br>"</h6>
+                            <a href="https://discord.com/users/1183106930554703934" target="_blank" class="glow-link">
+                                <b>View Discord Profile</b>
+                            </a>
+                            <p>---------</p>
+                        </div>
+                        
+                        <p style="margin-top: 20px; font-style: italic; color: #9ca3af;">--------------------</p>
+                        <p style="margin-top: 20px; font-style: italic; color: #9ca3af;">Looking to hire people who have deep knowledge of the Roblox engine under the hood.</p>
+                    </div>
+                    
+                </div>
+            </div>
+             <div class="section" id="extra-section">
+                <div class="section-header">
+                    <h2>Extras</h2>
+                </div>
+                <div class="section-content">
+                    <p>Decompiling our program for any purpose (Example: Stealing its code) is not allowed And there are lots of safety encryptions to Ensure our Code Never Gets Stolen.</p>
+                    <p>Note: ByteMagic™ is designed for a safe and secure experience. We appreciate fair competition within the Roblox executor community.</p>
+
+                    <h3>Questions&Answers:<br></h3>
+                    <h3><b>Submit Your Questions on the ByteMagic Server</b></h3>
+                    <p> 1 Question. Why is ByteMagic getting flagged with 'Trojan:Win32/Wacatac.B!ml'?</p>
+                    <p> 1 Answer: Its because Microsoft says: Anything that touches other program's memory (Roblox), Is a trojan, Specifically: 'Trojan:Win32/Wacatac.B!ml'. We are actively reaching out to Microsoft to fix this issue before we launch ByteMagic. </p>
+                    <p>----</p>
+                    <p> 2 Question. Why is the ByteMagic Program so small? </p>
+                    <p> 2 Answer. Because ByteMagic™ is <u>NOT</u> a GUI executor. It's just a console C++ Executor with several Roblox Libraries.</p>
+                    <p>----</p>
+                    <p> 3 Question. Is ByteMagic Detected?</p>
+                    <p> 3 Answer. Just like Xeno, It isnt detected on script execution and attachment, But there is a chance the exploiting account will go into the next BanWave. So use an <b>Alt</b>ernative Account (You should use an alt on every executor)</p>
+                    <p>----</p>
+                    <p> 4 Question.  Will ByteMagic™ Have a GUI version? </p>
+                    <p> 4 Answer. Yes, I have thought about it for a long time, And we have an UI designer on the team which made a beautifull UI, But were first working on launching the console version and then launching the GUI version shortly after. </p>
+                    <p>----</p>
+                    <p> 5 Question. How old is the creator of ByteMagic™? </p>
+                    <p> 5 Answer. Inside the 13-16 age bracket.</p>
+                </div>
+            </div>
+            <div class="section" id="server-section">
+                <div class="section-header">
+                    <h2>Server</h2>
+                </div>
+                <div class="section-content">
+                    <h2>Discord: <a href="https://discord.gg/WMjeg3szAt" target="_blank" class="glow-link"><b> [View/Join Discord Server]</b></a></h2>
+                </div>
+            </div>
+             <div class="section" id="donate-section">
+                <div class="section-header">
+                    <h2>Donate/Support</h2>
+                </div>
+                <div class="section-content">
+                    <h1>Coming soon</h1>
+                    <p class="subtitle">Donate to the developer of ByteMagic™</p>
+                </div>
+            </div>
+
+        <footer>
+            <p>&copy; 2026 ByteMagic™. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        const sections = document.querySelectorAll('.section');
+
+        sections.forEach(section => {
+            section.addEventListener('click', function(e) {
+                if (e.target.closest('.download-btn') || e.target.closest('a')) return;
+                this.classList.toggle('expanded');
+            });
+
+            section.addEventListener('mouseenter', function() {
+                this.hoverTimer = setTimeout(() => {
+                    this.classList.add('expanded');
+                }, 2000);
+            });
+
+            section.addEventListener('mouseleave', function() {
+                clearTimeout(this.hoverTimer);
+            });
+        });
+
+        function handleDownload(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            alert('Download will be available soon! ByteMagic™ is coming to revolutionize your Roblox experience.');
         }
-        else {
-            addr += 0x1000;
+        function handleGuiDownload(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            alert('The GUI version is still work in progress! ByteMagic™-GUI is coming to revolutionize your Roblox experience.');
         }
-    }
-    return 0;
-}
-</pre>
-</div>
-    </div>
+        
 
-<!-- 3 -->
-
-      
-<div class="crystal-card">
-      <h2 class="card-title">
-        <div class="card-title-icon">◆</div>
-        Debugging
-      </h2>
-      <div class="card-body">
-        <p>Learn about how the ByteMagic™ Execution engine works under the hood.</p>
-      </div>
-
-      <div class="callout">
-        <span class="callout-icon">◈</span>
-        <div class="Something to acknowledge:"><strong>These are just snippets! You cant make bytemagic yourself with just this.</strong> — </div>
-      </div>
-
-      <!-- Code Block -->
-       <div class="callout">
-        <span class="callout-icon">?</span>
-        <div class="Something to acknowledge:"><strong>Reading the Luau VM Bytecode Buffer.</strong></div>
-       </div>
-      <div class="code-block">
-        <div class="code-block-header">
-          <span class="code-block-lang">Includes</span>
-          <div class="code-block-dots"><span></span><span></span><span></span></div>
-        </div>
-        <pre>
- void readbuff(HANDLE hProcess, uintptr_t address, size_t size) {
-    std::vector<unsigned char> buffer(size);
-    SIZE_T bytesRead = 0;
-
-    if (ReadProcessMemory(hProcess, (LPCVOID)address, buffer.data(), size, &bytesRead)) {
-        printf("[+] Pulled %llu bytes. Running Deep Scan now \n\n", (unsigned long long)bytesRead);
-
-        for (SIZE_T i = 0; i < bytesRead; i += 16) {
-            std::vector<unsigned char> chunk;
-            for (int j = 0; j < 16 && (i + j) < bytesRead; j++) chunk.push_back(buffer[i + j]);
-
-            // CHUNK-LEVEL BRUTE FORCE
-            unsigned char bestKey = 0;
-            int bestPrintable = -1;
-
-            for (int k = 0; k < 256; k++) {
-                int printableCount = 0;
-                for (auto b : chunk) {
-                    unsigned char decoded = b ^ k;
-                    if (decoded >= 32 && decoded <= 126) printableCount++;
-                    if (decoded == 0) printableCount += 2;
-                }
-                if (printableCount > bestPrintable) {
-                    bestPrintable = printableCount;
-                    bestKey = (unsigned char)k;
-                }
+        function createParticles() {
+            for (let i = 0; i < 555; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 6 + 's';
+                particle.style.animationDuration = (Math.random() * 4 + 4) + 's';
+                document.body.appendChild(particle);
             }
-
-            printf("%04llX [%02X] ", (unsigned long long)i, bestKey);
-            for (size_t j = 0; j < 16; j++) {
-                if (j < chunk.size()) printf("%02x ", chunk[j] ^ bestKey);
-                else printf("   ");
-            }
-            printf(" | ");
-            for (size_t j = 0; j < chunk.size(); j++) {
-                unsigned char ch = chunk[j] ^ bestKey;
-                putchar((ch >= 32 && ch <= 126) ? ch : '.');
-            }
-            printf("\n");
         }
-    }
-    else {
-        printf("[-] RPM Failed %lu\n", GetLastError());
-    }
-}
-</pre>
-      </div>
-    </div>
 
-    <!-- 4 -->
+        createParticles();
 
-    <div class="crystal-card">
-      <h2 class="card-title">
-        <div class="card-title-icon">◆</div>
-        Bypassing
-      </h2>
-      <div class="card-body">
-        <p>Learn about how the ByteMagic™ Execution engine works under the hood.</p>
-      </div>
+        document.addEventListener('mousemove', (e) => {
+            const mouseX = e.clientX / window.innerWidth;
+            const mouseY = e.clientY / window.innerHeight;
 
-      <div class="callout">
-        <span class="callout-icon">◈</span>
-        <div class="Something to acknowledge:"><strong>These are just snippets! You cant make bytemagic yourself with just this.</strong> — </div>
-      </div>
+            sections.forEach((section, index) => {
+                const speed = (index + 1) * 5;
+                const x = (mouseX - 0.5) * speed;
+                const y = (mouseY - 0.5) * speed;
+                section.style.transform = `translate(${x}px, ${y}px)`;
+            });
+        });
+    </script>
 
-      <!-- Code Block -->
-       <div class="callout">
-        <span class="callout-icon">?</span>
-        <div class="Something to acknowledge:"><strong>Anticheat</strong></div>
-       </div>
-      <div class="code-block">
-        <div class="code-block-header">
-          <span class="code-block-lang">Includes</span>
-          <div class="code-block-dots"><span></span><span></span><span></span></div>
-        </div>
-        <pre>
- void SuspendProcess(DWORD pid) {
-    HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
-
-    if (snapshot == INVALID_HANDLE_VALUE) {
-        std::cerr << "[-] Failed to create snapshot. Error: " << GetLastError() << std::endl;
-        return;
-    }
-
-    THREADENTRY32 te;
-    te.dwSize = sizeof(te);
-
-    if (Thread32First(snapshot, &te)) {
-        do {
-            if (te.th32OwnerProcessID == pid) {
-                HANDLE hThread = OpenThread(THREAD_SUSPEND_RESUME, FALSE, te.th32ThreadID);
-                if (hThread) {
-                    DWORD result = SuspendThread(hThread);
-
-                    //  0xFFFFFFFF is the thing we lowkey need more of in our lives.
-                    if (result == (DWORD)-1) {
-                        std::cerr << "[-] Could not suspend thread " << te.th32ThreadID
-                            << ". Error: " << GetLastError() << std::endl;
-                    }
-
-                    CloseHandle(hThread);
-                }
-                else {
-					// its either because of admin priveleges. Or your laptop lacks enough rizz to bust inside the process lmao.
-                    std::cerr << "[-] Failed to open thread handle. Error: " << GetLastError() << std::endl;
-                }
+    <script>
+    (function () {
+        const style = document.createElement('style');
+        style.textContent = `
+            #bg-canvas {
+                position: fixed;
+                inset: 0;
+                pointer-events: none;
+                z-index: 0;
             }
-        } while (Thread32Next(snapshot, &te));
-    }
-
-    CloseHandle(snapshot);
-}
-
-void ResumeProcess(DWORD pid) {
-    HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
-
-    THREADENTRY32 te;
-    te.dwSize = sizeof(te); // Yeah im pretty sure its too small to satisfy any woman.
-
-    if (Thread32First(snapshot, &te)) {
-        do {
-            if (te.th32OwnerProcessID == pid) {
-                HANDLE hThread = OpenThread(THREAD_SUSPEND_RESUME, FALSE, te.th32ThreadID);
-                if (hThread) {
-                    ResumeThread(hThread);
-                    CloseHandle(hThread);
-                }
+            .container {
+                position: relative;
+                z-index: 1;
             }
-        } while (Thread32Next(snapshot, &te));
-    }
+        `;
+        document.head.appendChild(style);
 
-    CloseHandle(snapshot);  // OHH
-}
-</pre>
+        const canvas = document.createElement('canvas');
+        canvas.id = 'bg-canvas';
+        document.body.prepend(canvas);
 
-      </div>
-      <div class="callout callout-warn">
-        <span class="callout-icon">!</span>
-        <div class="Something to acknowledge:"><strong>DO NOT PAUSE THE PROCESS FOR MORE THAN 2 SECONDS!! THE HYPERION ANTICHEAT'S HEARTBEAT WILL CATCH YOU IF YOURE PLANNING TO USE THIS IN YOUR OWN CODE</strong> — </div>
-</div>
-    </div>
+        const ctx = canvas.getContext('2d');
+        let W, H;
 
-    <!-- CRYSTAL CARD [sec] -->
-    <div class="crystal-card">
-      <h2 class="card-title">
-        <div class="card-title-icon">◇</div>
-        Our service
-      </h2>
-      <div class="card-body">
-        <p>Some attributes that ByteMagic™ has:</p>
-      </div>
+        function resize() {
+            W = canvas.width = window.innerWidth;
+            H = canvas.height = window.innerHeight;
+        }
+        resize();
+        window.addEventListener('resize', resize);
 
-      <!-- Feature Grid — copy .feature-card for new features -->
-      <div class="features-grid">
-        <div class="feature-card">
-          <div class="feature-icon">◆</div>
-          <div class="feature-title">Simple</div>
-          <div class="feature-desc">Simple at default, Powerfull when preferred.</div>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">◇</div>
-          <div class="feature-title">Transparent</div>
-          <div class="feature-desc">We <b>Help</b> and <b>Trust</b> our users with any question they ask. And we are enthusiastic to hire anyone who would like to help the development of ByteMagic™</div>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">❖</div>
-          <div class="feature-title">Featurefull</div>
-          <div class="feature-desc">ByteMagic™ Has lots of features like: <br></div>
-          <ul>
-            <br>
-            <div class="feature-desc"> ● GUI </div>
-            <div class="feature-desc"> ● Easter eggs </div>
-            <div class="feature-desc"> ● Advanced features with the Roblox API </div>
-            <div class="feature-desc"> ● Most <b>community-friendly</b> Staff&Developers </div>
-          </ul>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">✦</div>
-          <div class="feature-title">AI</div>
-          <div class="feature-desc">Advanced Enhancement features to interact with the roblox Luau VM.</div>
-        </div>
-      </div>
-    </div>
+        let mouseX = 0.5, mouseY = 0.5;
+        window.addEventListener('mousemove', e => {
+            mouseX = e.clientX / window.innerWidth;
+            mouseY = e.clientY / window.innerHeight;
+        });
 
-    <!-- SECTION DIVIDER -->
-    <div class="section-divider">
-      <span class="section-divider-label">More Facts</span>
-      <div class="section-divider-line"></div>
-    </div>
+        class Crystal {
+            constructor() { this.reset(true); }
+            reset(init = false) {
+                this.x = Math.random() * 1.2 - 0.1;
+                this.y = init ? Math.random() : -0.1;
+                this.size = 18 + Math.random() * 55;
+                this.speed = 0.00012 + Math.random() * 0.00018;
+                this.angle = Math.random() * Math.PI * 2;
+                this.rotSpeed = (Math.random() - 0.5) * 0.008;
+                this.alpha = 0.03 + Math.random() * 0.12;
+                this.hue = 260 + Math.random() * 50;
+                this.depth = 0.3 + Math.random() * 0.7;
+                this.sides = Math.random() < 0.5 ? 6 : 4;
+                this.elongate = 0.4 + Math.random() * 1.2;
+            }
+            draw(ox, oy) {
+                const px = (this.x + ox * this.depth * 0.08) * W;
+                const py = (this.y + oy * this.depth * 0.08) * H;
+                ctx.save();
+                ctx.translate(px, py);
+                ctx.rotate(this.angle);
+                ctx.scale(1, this.elongate);
+                ctx.beginPath();
+                const n = this.sides;
+                for (let i = 0; i < n; i++) {
+                    const a = (i / n) * Math.PI * 2;
+                    const r = this.size * (i % 2 === 0 ? 1 : 0.55);
+                    i === 0 ? ctx.moveTo(Math.cos(a)*r, Math.sin(a)*r)
+                            : ctx.lineTo(Math.cos(a)*r, Math.sin(a)*r);
+                }
+                ctx.closePath();
+                const grad = ctx.createLinearGradient(-this.size, -this.size, this.size, this.size);
+                grad.addColorStop(0, `hsla(${this.hue}, 70%, 80%, ${this.alpha})`);
+                grad.addColorStop(0.5, `hsla(${this.hue + 20}, 60%, 55%, ${this.alpha * 0.6})`);
+                grad.addColorStop(1, `hsla(${this.hue}, 80%, 70%, ${this.alpha * 0.3})`);
+                ctx.fillStyle = grad;
+                ctx.fill();
+                ctx.strokeStyle = `hsla(${this.hue + 10}, 80%, 80%, ${this.alpha * 1.8})`;
+                ctx.lineWidth = 0.5;
+                ctx.stroke();
+                ctx.restore();
+                this.angle += this.rotSpeed;
+                this.y += this.speed;
+                if (this.y > 1.15) this.reset();
+            }
+        }
 
-    <!-- CRYSTAL CARD 3: Steps -->
-    <div class="crystal-card">
-      <h2 class="card-title">
-        <div class="card-title-icon">❖</div>
-        Why you can use ByteMagic™
-      </h2>
-      <div class="card-body">
-        <p>Reasons for why <b>YOU</b> can use ByteMagic™</p>
-      </div>
+        class GlowOrb {
+            constructor() {
+                this.x = Math.random();
+                this.y = Math.random();
+                this.tx = Math.random();
+                this.ty = Math.random();
+                this.r = 80 + Math.random() * 160;
+                this.alpha = 0.04 + Math.random() * 0.08;
+                this.speed = 0.003 + Math.random() * 0.004;
+                this.hue = 270 + Math.random() * 40;
+            }
+            update() {
+                if (Math.abs(this.x - this.tx) < 0.01 && Math.abs(this.y - this.ty) < 0.01) {
+                    this.tx = Math.random();
+                    this.ty = Math.random();
+                }
+                this.x += (this.tx - this.x) * this.speed;
+                this.y += (this.ty - this.y) * this.speed;
+            }
+            draw() {
+                const px = this.x * W, py = this.y * H;
+                const grad = ctx.createRadialGradient(px, py, 0, px, py, this.r);
+                grad.addColorStop(0, `hsla(${this.hue}, 70%, 55%, ${this.alpha})`);
+                grad.addColorStop(1, `hsla(${this.hue}, 70%, 30%, 0)`);
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.arc(px, py, this.r, 0, Math.PI * 2);
+                ctx.fill();
+                this.update();
+            }
+        }
 
-      <!-- Steps List — copy .step for new steps -->
-      <div class="steps-list">
-        <div class="step">
-          <div class="step-num">1</div>
-          <div class="step-content">
-            <div class="step-title">Easy first-time usage</div>
-            <div class="step-desc">Our executor is the <b>Simplest</b> Roblox Script Executor On The <b>Whole</b> Internet. So its often <b>Plug and Play.</b></div>
-          </div>
-        </div>
-        <div class="step">
-          <div class="step-num">2</div>
-          <div class="step-content">
-            <div class="step-title">Transparent</div>
-            <div class="step-desc">If youre a <b>Beginner</b> And you're skeptical about Roblox Exploiting, Our discord server includes services to request <b>Proof</b> that ByteMagic™ is Safe.</div>
-          </div>
-        </div>
-        <div class="step">
-          <div class="step-num">3</div>
-          <div class="step-content">
-            <div class="step-title">Advanced</div>
-            <div class="step-desc">Our program is very <b>Advanced</b> under <b>The Hood,</b> And its specifically made to not be able to go wrong by having lots of <b>🛡 Safety Features 🛡</b></div>
-          </div>
-        </div>
-      </div>
-    </div>
+        function drawMouseGlow(mx, my) {
+            const px = mx * W, py = my * H;
+            const r = 220;
+            const grad = ctx.createRadialGradient(px, py, 0, px, py, r);
+            grad.addColorStop(0, 'rgba(139, 47, 201, 0.12)');
+            grad.addColorStop(0.4, 'rgba(75, 25, 120, 0.06)');
+            grad.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.arc(px, py, r, 0, Math.PI * 2);
+            ctx.fill();
+        }
 
-    <!-- CRYSTAL CARD 4: Properties Table -->
-    <div class="crystal-card">
-      <h2 class="card-title">
-        <div class="card-title-icon">✦</div>
-        Conclusion
-      </h2>
-      <div class="card-body">
-        <p>You should absolutely use ByteMagic™ if you want a <b>Fast, Safe, Secure, Simple, And <u>Best</u> Plug&Play Executor on <u>𝗥⟐𝗕𝗟◘𝗫</u></b></p>
-      </div>
+        const crystals = Array.from({ length: 38 }, () => new Crystal());
+        const orbs = Array.from({ length: 5 }, () => new GlowOrb());
 
-      
+        function frame() {
+            ctx.clearRect(0, 0, W, H);
+            orbs.forEach(o => o.draw());
+            drawMouseGlow(mouseX, mouseY);
+            const offX = mouseX - 0.5;
+            const offY = mouseY - 0.5;
+            crystals.forEach(c => c.draw(offX, offY));
+            requestAnimationFrame(frame);
+        }
+        frame();
+    })();
+    </script>
 
-      <!-- Warning callout -->
-       <div class="callout callout-success">
-        <span class="callout-icon">⚒</span>
-        <div class="callout-text"><strong>Be Hired!!</strong> We are looking to hire poeple who can test ByteMagic™ Before its Release, DM me or state this in the <b>Discord Server.</b></div>
-      </div>
-      <div class="callout callout-success">
-        <span class="callout-icon">⚒</span>
-        <div class="callout-text"><strong>Be Hired!!</strong> We are looking to hire poeple with a <b>DEEP</b> understanding of the <u>Roblox Engine</u> under the hood.</div>
-      </div>
-    </div>
+    <!-- Custom Cursor Script -->
+    <script>
+        const cursor = document.getElementById('cursor');
+        const ring = document.getElementById('cursor-ring');
+        let mx = window.innerWidth / 2, my = window.innerHeight / 2;
+        let rx = mx, ry = my;
 
-    <!-- Footer -->
-    <div class="doc-footer">
-      <a href="#">← Hellooo!!</a>
-      <span>ByteMagic™</span>
-      <a href="#">Byeeee!! →</a>
-    </div>
+        document.addEventListener('mousemove', e => {
+            mx = e.clientX; my = e.clientY;
+            cursor.style.left = mx + 'px';
+            cursor.style.top = my + 'px';
+        });
 
-  </main>
-</div>
+        function animRing() {
+            rx += (mx - rx) * 0.12;
+            ry += (my - ry) * 0.12;
+            ring.style.left = rx + 'px';
+            ring.style.top = ry + 'px';
+            requestAnimationFrame(animRing);
+        }
+        animRing();
 
+        document.querySelectorAll('a, button, input, .section, .download-btn').forEach(el => {
+            el.addEventListener('mouseenter', () => {
+                cursor.style.width = '18px';
+                cursor.style.height = '18px';
+                ring.style.width = '52px';
+                ring.style.height = '52px';
+            });
+            el.addEventListener('mouseleave', () => {
+                cursor.style.width = '12px';
+                cursor.style.height = '12px';
+                ring.style.width = '36px';
+                ring.style.height = '36px';
+            });
+        });
+    </script>
 
-
-<script>
-// ---- Custom Cursor ----
-const cursor = document.getElementById('cursor');
-const ring = document.getElementById('cursor-ring');
-let mx = window.innerWidth / 2, my = window.innerHeight / 2;
-let rx = mx, ry = my;
-
-document.addEventListener('mousemove', e => {
-  mx = e.clientX; my = e.clientY;
-  cursor.style.left = mx + 'px';
-  cursor.style.top = my + 'px';
-});
-
-function animRing() {
-  rx += (mx - rx) * 0.12;
-  ry += (my - ry) * 0.12;
-  ring.style.left = rx + 'px';
-  ring.style.top = ry + 'px';
-  requestAnimationFrame(animRing);
-}
-animRing();
-
-document.querySelectorAll('a, button, input, .feature-card, .crystal-card').forEach(el => {
-  el.addEventListener('mouseenter', () => {
-    cursor.style.width = '18px';
-    cursor.style.height = '18px';
-    ring.style.width = '52px';
-    ring.style.height = '52px';
-  });
-  el.addEventListener('mouseleave', () => {
-    cursor.style.width = '12px';
-    cursor.style.height = '12px';
-    ring.style.width = '36px';
-    ring.style.height = '36px';
-  });
-});
-
-// ---- Background Canvas: Crystals + Mouse Parallax ----
-const canvas = document.getElementById('bg-canvas');
-const ctx = canvas.getContext('2d');
-
-let W, H;
-function resize() {
-  W = canvas.width = window.innerWidth;
-  H = canvas.height = window.innerHeight;
-}
-resize();
-window.addEventListener('resize', resize);
-
-// Mouse position for parallax
-let mouseX = 0.5, mouseY = 0.5;
-document.addEventListener('mousemove', e => {
-  mouseX = e.clientX / window.innerWidth;
-  mouseY = e.clientY / window.innerHeight;
-});
-
-// Crystal shard definition
-class Crystal {
-  constructor() { this.reset(true); }
-
-  reset(init = false) {
-    this.x = Math.random() * 1.2 - 0.1;
-    this.y = init ? Math.random() : -0.1;
-    this.size = 18 + Math.random() * 55;
-    this.speed = 0.00012 + Math.random() * 0.00018;
-    this.angle = Math.random() * Math.PI * 2;
-    this.rotSpeed = (Math.random() - 0.5) * 0.008;
-    this.alpha = 0.03 + Math.random() * 0.12;
-    this.hue = 260 + Math.random() * 50;
-    this.depth = 0.3 + Math.random() * 0.7; // parallax depth
-    this.sides = Math.random() < 0.5 ? 6 : 4;
-    this.elongate = 0.4 + Math.random() * 1.2;
-  }
-
-  draw(ox, oy) {
-    const px = (this.x + ox * this.depth * 0.08) * W;
-    const py = (this.y + oy * this.depth * 0.08) * H;
-    ctx.save();
-    ctx.translate(px, py);
-    ctx.rotate(this.angle);
-    ctx.scale(1, this.elongate);
-    ctx.beginPath();
-    const n = this.sides;
-    for (let i = 0; i < n; i++) {
-      const a = (i / n) * Math.PI * 2;
-      const r = this.size * (i % 2 === 0 ? 1 : 0.55);
-      i === 0 ? ctx.moveTo(Math.cos(a)*r, Math.sin(a)*r)
-               : ctx.lineTo(Math.cos(a)*r, Math.sin(a)*r);
-    }
-    ctx.closePath();
-    const grad = ctx.createLinearGradient(-this.size, -this.size, this.size, this.size);
-    grad.addColorStop(0, `hsla(${this.hue}, 70%, 80%, ${this.alpha})`);
-    grad.addColorStop(0.5, `hsla(${this.hue + 20}, 60%, 55%, ${this.alpha * 0.6})`);
-    grad.addColorStop(1, `hsla(${this.hue}, 80%, 70%, ${this.alpha * 0.3})`);
-    ctx.fillStyle = grad;
-    ctx.fill();
-    ctx.strokeStyle = `hsla(${this.hue + 10}, 80%, 80%, ${this.alpha * 1.8})`;
-    ctx.lineWidth = 0.5;
-    ctx.stroke();
-    ctx.restore();
-    this.angle += this.rotSpeed;
-    this.y += this.speed;
-    if (this.y > 1.15) this.reset();
-  }
-}
-
-// Mouse glow orb
-class GlowOrb {
-  constructor() {
-    this.x = Math.random();
-    this.y = Math.random();
-    this.tx = Math.random();
-    this.ty = Math.random();
-    this.r = 80 + Math.random() * 160;
-    this.alpha = 0.04 + Math.random() * 0.08;
-    this.speed = 0.003 + Math.random() * 0.004;
-    this.hue = 270 + Math.random() * 40;
-  }
-
-  update() {
-    if (Math.abs(this.x - this.tx) < 0.01 && Math.abs(this.y - this.ty) < 0.01) {
-      this.tx = Math.random();
-      this.ty = Math.random();
-    }
-    this.x += (this.tx - this.x) * this.speed;
-    this.y += (this.ty - this.y) * this.speed;
-  }
-
-  draw() {
-    const px = this.x * W, py = this.y * H;
-    const grad = ctx.createRadialGradient(px, py, 0, px, py, this.r);
-    grad.addColorStop(0, `hsla(${this.hue}, 70%, 55%, ${this.alpha})`);
-    grad.addColorStop(1, `hsla(${this.hue}, 70%, 30%, 0)`);
-    ctx.fillStyle = grad;
-    ctx.beginPath();
-    ctx.arc(px, py, this.r, 0, Math.PI * 2);
-    ctx.fill();
-    this.update();
-  }
-}
-
-// Mouse-following glow
-function drawMouseGlow(mx, my) {
-  const px = mx * W, py = my * H;
-  const r = 220;
-  const grad = ctx.createRadialGradient(px, py, 0, px, py, r);
-  grad.addColorStop(0, `rgba(139, 47, 201, 0.12)`);
-  grad.addColorStop(0.4, `rgba(75, 25, 120, 0.06)`);
-  grad.addColorStop(1, `rgba(0,0,0,0)`);
-  ctx.fillStyle = grad;
-  ctx.beginPath();
-  ctx.arc(px, py, r, 0, Math.PI * 2);
-  ctx.fill();
-}
-
-const crystals = Array.from({ length: 38 }, () => new Crystal());
-const orbs = Array.from({ length: 5 }, () => new GlowOrb());
-
-const ox = mouseX - 0.5, oy = mouseY - 0.5;
-
-function frame() {
-  ctx.clearRect(0, 0, W, H);
-
-  // ambient orbs
-  orbs.forEach(o => o.draw());
-
-  // mouse glow
-  drawMouseGlow(mouseX, mouseY);
-
-  // crystals with parallax offset
-  const offX = mouseX - 0.5;
-  const offY = mouseY - 0.5;
-  crystals.forEach(c => c.draw(offX, offY));
-
-  requestAnimationFrame(frame);
-}
-
-frame();
-</script>
 </body>
 </html>
