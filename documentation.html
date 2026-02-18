@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ByteMagic Documentation</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Raleway:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg-dark: #0a0a0a;
+    --purple-deep: #2b124a;
+    --purple-mid: #4a1a7a;
+    --purple-bright: #8b2fc9;
+    --purple-glow: #bf5af2;
+    --purple-light: #d4a8ff;
+    --crystal-shine: #e8d5ff;
+    --accent: #c77dff;
+    --glass-bg: rgba(43, 18, 74, 0.35);
+    --glass-border: rgba(191, 90, 242, 0.25);
+    --glass-border-bright: rgba(191, 90, 242, 0.6);
+    --text-main: #f0e6ff;
+    --text-muted: #a08abf;
+    --shadow-purple: rgba(139, 47, 201, 0.4);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Raleway', sans-serif;
+    background: linear-gradient(135deg, #0a0a0a 0%, #2b124a 50%, #0a0a0a 100%);
+    background-attachment: fixed;
+    color: var(--text-main);
+    min-height: 100vh;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* ============================================================
+     CUSTOM CURSOR
+  ============================================================ */
+  #cursor {
+    position: fixed;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--purple-glow);
+    box-shadow: 0 0 12px var(--purple-glow), 0 0 24px var(--purple-bright);
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: transform 0.05s, width 0.2s, height 0.2s, opacity 0.2s;
+  }
+  #cursor-ring {
+    position: fixed;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(191, 90, 242, 0.5);
+    pointer-events: none;
+    z-index: 9998;
+    transform: translate(-50%, -50%);
+    transition: transform 0.12s ease-out, width 0.2s, height 0.2s;
+  }
+
+  /* ============================================================
+     ANIMATED CRYSTAL BACKGROUND CANVAS
+  ============================================================ */
+  #bg-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  /* ============================================================
+     LAYOUT
+  ============================================================ */
+  .page-wrapper {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    grid-template-rows: 64px 1fr;
+    min-height: 100vh;
+  }
+
+  /* ============================================================
+     TOPBAR
+  ============================================================ */
+  .topbar {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    display: flex;
+    align-items: center;
+    padding: 0 32px;
+    gap: 24px;
+    background: rgba(10, 10, 10, 0.7);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--glass-border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .topbar-logo {
+    font-family: 'Cinzel', serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    background: linear-gradient(90deg, var(--purple-glow), var(--crystal-shine));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 0.08em;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .topbar-search {
+    flex: 1;
+    max-width: 420px;
+    margin-left: auto;
+    position: relative;
+  }
+
+  .topbar-search input {
+    width: 100%;
+    padding: 8px 16px 8px 40px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    color: var(--text-main);
+    font-family: 'Raleway', sans-serif;
+    font-size: 0.85rem;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .topbar-search input::placeholder { color: var(--text-muted); }
+  .topbar-search input:focus {
+    border-color: var(--purple-glow);
+    box-shadow: 0 0 0 3px rgba(191, 90, 242, 0.15);
+  }
+
+  .topbar-search svg {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    width: 16px; height: 16px;
+  }
+
+  .topbar-nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 16px;
+  }
+
+  .topbar-nav a {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-decoration: none;
+    padding: 6px 14px;
+    border-radius: 6px;
+    transition: color 0.2s, background 0.2s;
+    letter-spacing: 0.03em;
+  }
+
+  .topbar-nav a:hover {
+    color: var(--text-main);
+    background: var(--glass-bg);
+  }
+
+  .topbar-nav a.active {
+    color: var(--purple-glow);
+    background: rgba(191, 90, 242, 0.1);
+  }
+
+  .topbar-btn {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--bg-dark);
+    background: linear-gradient(135deg, var(--purple-bright), var(--purple-glow));
+    border: none;
+    padding: 7px 18px;
+    border-radius: 7px;
+    cursor: pointer;
+    text-decoration: none;
+    letter-spacing: 0.04em;
+    box-shadow: 0 0 12px rgba(191, 90, 242, 0.4);
+    transition: box-shadow 0.2s, transform 0.15s;
+  }
+  .topbar-btn:hover {
+    box-shadow: 0 0 24px rgba(191, 90, 242, 0.7);
+    transform: translateY(-1px);
+  }
+
+  /* ============================================================
+     SIDEBAR
+  ============================================================ */
+  
+
+
+
+  /* ============================================================
+     MAIN CONTENT
+  ============================================================ */
+  .main {
+    grid-column: 2;
+    grid-row: 2;
+    padding: 48px 56px 80px;
+    max-width: 860px;
+  }
+
+  /* ---- Breadcrumb ---- */
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-bottom: 28px;
+  }
+
+  .breadcrumb a {
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .breadcrumb a:hover { color: var(--purple-glow); }
+
+  .breadcrumb-sep {
+    color: var(--purple-mid);
+    font-size: 0.7rem;
+  }
+
+  .breadcrumb-current { color: var(--purple-glow); }
+
+  /* ---- Page Header ---- */
+  .page-header { margin-bottom: 40px; }
+
+  .page-tag {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--purple-glow);
+    background: rgba(191, 90, 242, 0.12);
+    border: 1px solid rgba(191, 90, 242, 0.3);
+    padding: 3px 12px;
+    border-radius: 20px;
+    margin-bottom: 14px;
+  }
+
+  .page-title {
+    font-family: 'Cinzel', serif;
+    font-size: 2.4rem;
+    font-weight: 700;
+    line-height: 1.2;
+    background: linear-gradient(120deg, var(--crystal-shine) 0%, var(--purple-glow) 60%, var(--purple-light) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 14px;
+  }
+
+  .page-subtitle {
+    font-size: 1.05rem;
+    font-weight: 300;
+    color: var(--text-muted);
+    line-height: 1.6;
+    max-width: 600px;
+  }
+
+  /* ---- Crystal Card (copy-paste block for sections) ---- */
+  /* TO ADD A NEW SECTION: copy one .crystal-card block */
+  .crystal-card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 14px;
+    padding: 32px;
+    margin-bottom: 28px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+
+  .crystal-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(191, 90, 242, 0.6), transparent);
+  }
+
+  .crystal-card::after {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 140px; height: 140px;
+    background: radial-gradient(circle, rgba(139, 47, 201, 0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .crystal-card:hover {
+    border-color: var(--glass-border-bright);
+    box-shadow: 0 8px 40px rgba(139, 47, 201, 0.2), inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+
+  .card-title {
+    font-family: 'Cinzel', serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--crystal-shine);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .card-title-icon {
+    width: 28px; height: 28px;
+    background: linear-gradient(135deg, var(--purple-bright), var(--purple-glow));
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    color: #fff;
+    box-shadow: 0 0 10px rgba(191, 90, 242, 0.4);
+    flex-shrink: 0;
+  }
+
+  .card-body {
+    font-size: 0.9rem;
+    font-weight: 300;
+    color: var(--text-muted);
+    line-height: 1.75;
+  }
+
+  .card-body p + p { margin-top: 10px; }
+
+  /* ---- Inline Code ---- */
+  code {
+    font-family: 'Courier New', monospace;
+    font-size: 0.82em;
+    background: rgba(139, 47, 201, 0.18);
+    border: 1px solid rgba(191, 90, 242, 0.2);
+    color: var(--purple-light);
+    padding: 1px 6px;
+    border-radius: 5px;
+  }
+
+  /* ---- Code Block ---- */
+  .code-block {
+    background: rgba(5, 5, 15, 0.75);
+    border: 1px solid var(--glass-border);
+    border-radius: 10px;
+    margin: 16px 0;
+    overflow: hidden;
+  }
+
+  .code-block-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 18px;
+    border-bottom: 1px solid var(--glass-border);
+    background: rgba(43, 18, 74, 0.3);
+  }
+
+  .code-block-lang {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--purple-glow);
+  }
+
+  .code-block-dots { display: flex; gap: 6px; }
+  .code-block-dots span {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: rgba(191, 90, 242, 0.25);
+  }
+
+  .code-block pre {
+    padding: 18px 20px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.83rem;
+    color: var(--text-main);
+    overflow-x: auto;
+    line-height: 1.65;
+    white-space: pre;
+  }
+
+  /* ---- Alert / Callout ---- */
+  /* TO ADD A NEW CALLOUT: copy one .callout block and change --callout-color */
+  .callout {
+    --callout-color: var(--purple-glow);
+    display: flex;
+    gap: 14px;
+    padding: 18px 20px;
+    background: rgba(43, 18, 74, 0.4);
+    border-left: 3px solid var(--callout-color);
+    border-radius: 0 10px 10px 0;
+    margin: 18px 0;
+  }
+
+  .callout.callout-warn { --callout-color: #e6a817; }
+  .callout.callout-danger { --callout-color: #e05252; }
+  .callout.callout-success { --callout-color: #52e07c; }
+
+  .callout-icon {
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .callout-text {
+    font-size: 0.87rem;
+    font-weight: 400;
+    color: var(--text-muted);
+    line-height: 1.65;
+  }
+
+  .callout-text strong {
+    color: var(--callout-color);
+    font-weight: 600;
+  }
+
+  /* ---- Property / Param Table ---- */
+  .prop-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    margin: 16px 0;
+  }
+
+  .prop-table thead tr {
+    border-bottom: 1px solid var(--glass-border);
+  }
+
+  .prop-table th {
+    text-align: left;
+    padding: 10px 14px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--purple-glow);
+  }
+
+  .prop-table td {
+    padding: 10px 14px;
+    color: var(--text-muted);
+    border-bottom: 1px solid rgba(191, 90, 242, 0.08);
+    vertical-align: top;
+    line-height: 1.55;
+  }
+
+  .prop-table tbody tr:hover td {
+    background: rgba(191, 90, 242, 0.05);
+    color: var(--text-main);
+  }
+
+  .prop-table td:first-child { color: var(--purple-light); font-family: 'Courier New', monospace; font-size: 0.82em; }
+
+  .prop-type {
+    display: inline-block;
+    font-family: 'Courier New', monospace;
+    font-size: 0.78em;
+    color: var(--accent);
+    background: rgba(139, 47, 201, 0.12);
+    padding: 1px 7px;
+    border-radius: 4px;
+    border: 1px solid rgba(191, 90, 242, 0.15);
+  }
+
+  /* ---- Section Divider ---- */
+  .section-divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 40px 0 32px;
+  }
+
+  .section-divider-label {
+    font-family: 'Cinzel', serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--crystal-shine);
+    white-space: nowrap;
+  }
+
+  .section-divider-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--glass-border-bright), transparent);
+  }
+
+  /* ---- Step List ---- */
+  /* TO ADD STEPS: copy .step blocks inside .steps-list */
+  .steps-list { counter-reset: step-counter; margin: 16px 0; }
+
+  .step {
+    display: flex;
+    gap: 18px;
+    margin-bottom: 20px;
+    counter-increment: step-counter;
+    align-items: flex-start;
+  }
+
+  .step-num {
+    width: 32px; height: 32px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--purple-bright), var(--purple-glow));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Cinzel', serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #fff;
+    box-shadow: 0 0 12px rgba(191, 90, 242, 0.5);
+    margin-top: 2px;
+  }
+
+  .step-content { flex: 1; }
+
+  .step-title {
+    font-weight: 600;
+    font-size: 0.92rem;
+    color: var(--text-main);
+    margin-bottom: 4px;
+  }
+
+  .step-desc {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  /* ---- Grid Cards (feature overview) ---- */
+  /* TO ADD FEATURES: copy .feature-card blocks inside .features-grid */
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+    gap: 16px;
+    margin: 16px 0;
+  }
+
+  .feature-card {
+    background: rgba(43, 18, 74, 0.3);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 20px;
+    transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+    cursor: default;
+  }
+
+  .feature-card:hover {
+    border-color: var(--glass-border-bright);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(139, 47, 201, 0.2);
+  }
+
+  .feature-icon {
+    font-size: 1.4rem;
+    margin-bottom: 10px;
+  }
+
+  .feature-title {
+    font-family: 'Cinzel', serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--crystal-shine);
+    margin-bottom: 6px;
+  }
+
+  .feature-desc {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    line-height: 1.55;
+  }
+
+  /* ---- On This Page (right sidebar toc, optional) ---- */
+  /* In this layout it's omitted for simplicity — add as a third column if needed */
+
+  /* ---- Footer ---- */
+  .doc-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 32px;
+    margin-top: 20px;
+    border-top: 1px solid var(--glass-border);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .doc-footer a {
+    color: var(--text-muted);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: color 0.2s;
+  }
+  .doc-footer a:hover { color: var(--purple-glow); }
+
+  /* ============================================================
+     CRYSTAL GEOMETRY (decorative)
+  ============================================================ */
+  .crystal-geo {
+    position: fixed;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.06;
+  }
+
+  /* ============================================================
+     SCROLLBAR
+  ============================================================ */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--purple-mid); border-radius: 4px; }
+
+  /* ============================================================
+     RESPONSIVE
+  ============================================================ */
+  @media (max-width: 780px) {
+    .page-wrapper { grid-template-columns: 1fr; }
+    .main { grid-column: 1; padding: 32px 24px 60px; }
+    .topbar-nav { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Custom Cursor -->
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- Animated Background Canvas -->
+<canvas id="bg-canvas"></canvas>
+
+<!-- ============================================================
+     PAGE WRAPPER
+============================================================ -->
+<div class="page-wrapper">
+
+  <!-- ========== TOPBAR ========== -->
+  <header class="topbar">
+    <a href="#" class="topbar-logo">◆ BYTEMAGIC™</a>
+
+    <!-- ---- NAV LINKS (copy .topbar-nav a blocks to add pages) ---- -->
+    <nav class="topbar-nav">
+      <h4>Bytemagic's Official Documentation</h4>
+    </nav>
+
+    <!-- Search -->
+    <div class="topbar-search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      <input type="text" placeholder="Search >">
+    </div>
+
+    <a href="#" class="topbar-btn">docs</a>
+  </header>
+
+
+  <!-- ========== MAIN ========== -->
+  <main class="main">
+
+    <!-- Breadcrumb -->
+    <nav class="breadcrumb">
+      <a href="#">Simple</a>
+      <span class="breadcrumb-sep">›</span>
+      <a href="#">Fast</a>
+      <span class="breadcrumb-sep">›</span>
+      <span class="breadcrumb-current">Secure</span>
+    </nav>
+
+    <!-- Page Header -->
+    <header class="page-header">
+      <span class="page-tag">🕮 Docs</span>
+      <h1 class="page-title">ByteMagic™ Documentation 🕮</h1>
+      <p class="page-subtitle">Learn about how the ByteMagic™ Execution Engine Works under the Hood.</p>
+    </header>
+
+    <!-- ============================================================
+         SECTION DIVIDER — copy for new sections
+    ============================================================ -->
+    <div class="section-divider">
+      <span class="section-divider-label">docs</span>
+      <div class="section-divider-line"></div>
+    </div>
+
+    <!-- ============================================================
+         crystal cards. 1
+    ============================================================ -->
+    <div class="crystal-card">
+      <h2 class="card-title">
+        <div class="card-title-icon">◆</div>
+        Libraries
+      </h2>
+      <div class="card-body">
+        <p>Learn about how the ByteMagic™ Execution engine works under the hood.</p>
+        <p>A little roadmap: <code>Functions > Attachment > Smart-Byte-Sacrifising > Execution</code> </p>
+      </div>
+
+      <div class="callout">
+        <span class="callout-icon">◈</span>
+        <div class="Something to acknowledge:"><strong>These are just snippets! You cant make bytemagic yourself with just this.</strong> — </div>
+      </div>
+
+      <!-- Code Block -->
+       <div class="callout">
+        <span class="callout-icon">?</span>
+        <div class="Something to acknowledge:"><strong>This is every single Microsoft windows library Bytemagic uses:</strong></div>
+       </div>
+      <div class="code-block">
+        <div class="code-block-header">
+          <span class="code-block-lang">Includes</span>
+          <div class="code-block-dots"><span></span><span></span><span></span></div>
+        </div>
+        <pre>#include &lt;iostream&gt;
+#include &lt;string&gt;
+#define WIN32_LEAN_AND_MEAN
+#include &lt;Windows.h&gt;
+#include &lt;thread&gt;
+#include &lt;ColorDlg.h&gt;
+#include &lt;memoryapi.h&gt;
+#include &lt;chrono&gt;
+#include &lt;processthreadsapi.h&gt;
+#include &lt;tlhelp32.h&gt;
+#include &lt;process.h&gt;
+#include &lt;memory&gt;
+#include &lt;vector&gt;
+#include &lt;iomanip&gt;
+#include &lt;sstream&gt;
+#include &lt;fstream&gt;
+#include &lt;shellapi.h&gt;
+#include &lt;cstdio&gt;
+#include &lt;dwmapi.h&gt;</pre>
+      </div>
+    </div>
+
+    <!-- 2-->
+
+    <div class="crystal-card">
+      <h2 class="card-title">
+        <div class="card-title-icon">◆</div>
+        Attachment Logic 
+        <div class="callout">
+        <span class="callout-icon">!</span>
+        <div class="Something to acknowledge:"><strong>OUTDATED</strong>  </div>
+      </div>
+      </h2>
+      <div class="card-body">
+        <p>Learn about how the ByteMagic™ Execution engine works under the hood.</p>
+        <p>A little roadmap: <code>Functions > Attachment > Smart-Byte-Sacrifising > Execution</code> </p>
+      </div>
+
+      <div class="callout">
+        <span class="callout-icon">◈</span>
+        <div class="Something to acknowledge:"><strong>This is NOT the latest attachment logic. This is a rough sketch we made when starting this project. Its still usable tho.</strong>  </div>
+      </div>
+
+      <!-- Code Block -->
+      <div class="code-block">
+        <div class="code-block-header">
+          <span class="code-block-lang">Attachment</span>
+          <div class="code-block-dots"><span></span><span></span><span></span></div>
+        </div>
+        <pre>uintptr_t FindLuaSignature(HANDLE hProcess) {
+    SYSTEM_INFO si;
+    GetSystemInfo(&si);
+
+    MEMORY_BASIC_INFORMATION mbi;
+    uintptr_t addr = (uintptr_t)si.lpMinimumApplicationAddress;
+
+    unsigned char magic[] = { 0x1B, 0x4C, 0x55, 0x41, 0x55 };
+    size_t magicSize = sizeof(magic);
+
+    while (addr < (uintptr_t)si.lpMaximumApplicationAddress) {
+        if (VirtualQueryEx(hProcess, (LPCVOID)addr, &mbi, sizeof(mbi))) {
+            if (mbi.State == MEM_COMMIT && (mbi.Protect & PAGE_READWRITE || mbi.Protect & PAGE_READONLY)) {
+                std::vector<unsigned char> buffer(mbi.RegionSize);
+                SIZE_T bytesRead;
+
+                if (ReadProcessMemory(hProcess, mbi.BaseAddress, buffer.data(), mbi.RegionSize, &bytesRead)) {
+                    for (size_t i = 0; i < bytesRead - magicSize; i++) {
+                        bool found = true;
+                        for (size_t j = 0; j < magicSize; j++) {
+                            if (buffer[i + j] != magic[j]) {
+                                found = false;
+                                break;
+                            }
+                        }
+                        if (found) {
+                            return (uintptr_t)mbi.BaseAddress + i;
+                        }
+                    }
+                }
+            }
+            addr += mbi.RegionSize;
+        }
+        else {
+            addr += 0x1000;
+        }
+    }
+    return 0;
+}
+</pre>
+      </div>
+    </div>
+
+    <!-- CRYSTAL CARD [sec] -->
+    <div class="crystal-card">
+      <h2 class="card-title">
+        <div class="card-title-icon">◇</div>
+        Our service
+      </h2>
+      <div class="card-body">
+        <p>Some attributes that ByteMagic™ has:</p>
+      </div>
+
+      <!-- Feature Grid — copy .feature-card for new features -->
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">◆</div>
+          <div class="feature-title">Simple</div>
+          <div class="feature-desc">Simple at default, Powerfull when preferred.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">◇</div>
+          <div class="feature-title">Transparent</div>
+          <div class="feature-desc">We <b>Help</b> and <b>Trust</b> our users with any question they ask. And we are enthusiastic to hire anyone who would like to help the development of ByteMagic™</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">❖</div>
+          <div class="feature-title">Featurefull</div>
+          <div class="feature-desc">ByteMagic™ Has lots of features like: <br></div>
+          <ul>
+            <br>
+            <div class="feature-desc"> ● GUI </div>
+            <div class="feature-desc"> ● Easter eggs </div>
+            <div class="feature-desc"> ● Advanced features with the Roblox API </div>
+            <div class="feature-desc"> ● Most <b>community-friendly</b> Staff&Developers </div>
+          </ul>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">✦</div>
+          <div class="feature-title">AI</div>
+          <div class="feature-desc">Advanced Enhancement features to interact with the roblox Luau VM.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION DIVIDER -->
+    <div class="section-divider">
+      <span class="section-divider-label">More Facts</span>
+      <div class="section-divider-line"></div>
+    </div>
+
+    <!-- CRYSTAL CARD 3: Steps -->
+    <div class="crystal-card">
+      <h2 class="card-title">
+        <div class="card-title-icon">❖</div>
+        Why you can use ByteMagic™
+      </h2>
+      <div class="card-body">
+        <p>Reasons for why <b>YOU</b> can use ByteMagic™</p>
+      </div>
+
+      <!-- Steps List — copy .step for new steps -->
+      <div class="steps-list">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <div class="step-title">Easy first-time usage</div>
+            <div class="step-desc">Our executor is the <b>Simplest</b> Roblox Script Executor On The <b>Whole</b> Internet. So its often <b>Plug and Play.</b></div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <div class="step-title">Transparent</div>
+            <div class="step-desc">If youre a <b>Beginner</b> And you're skeptical about Roblox Exploiting, Our discord server includes services to request <b>Proof</b> that ByteMagic™ is Safe.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <div class="step-title">Advanced</div>
+            <div class="step-desc">Our program is very <b>Advanced</b> under <b>The Hood,</b> And its specifically made to not be able to go wrong by having lots of <b>🛡 Safety Features 🛡</b></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CRYSTAL CARD 4: Properties Table -->
+    <div class="crystal-card">
+      <h2 class="card-title">
+        <div class="card-title-icon">✦</div>
+        Conclusion
+      </h2>
+      <div class="card-body">
+        <p>You should absolutely use ByteMagic™ if you want a <b>Fast, Safe, Secure, Simple, And <u>Best</u> Plug&Play Executor on <u>𝗥⟐𝗕𝗟◘𝗫</u></b></p>
+      </div>
+
+      
+
+      <!-- Warning callout -->
+       <div class="callout callout-success">
+        <span class="callout-icon">⚒</span>
+        <div class="callout-text"><strong>Be Hired!!</strong> We are looking to hire poeple who can test ByteMagic™ Before its Release, DM me or state this in the <b>Discord Server.</b></div>
+      </div>
+      <div class="callout callout-success">
+        <span class="callout-icon">⚒</span>
+        <div class="callout-text"><strong>Be Hired!!</strong> We are looking to hire poeple with a <b>DEEP</b> understanding of the <u>Roblox Engine</u> under the hood.</div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="doc-footer">
+      <a href="#">← Hellooo!!</a>
+      <span>ByteMagic™</span>
+      <a href="#">Byeeee!! →</a>
+    </div>
+
+  </main>
+</div>
+
+
+
+<script>
+// ---- Custom Cursor ----
+const cursor = document.getElementById('cursor');
+const ring = document.getElementById('cursor-ring');
+let mx = window.innerWidth / 2, my = window.innerHeight / 2;
+let rx = mx, ry = my;
+
+document.addEventListener('mousemove', e => {
+  mx = e.clientX; my = e.clientY;
+  cursor.style.left = mx + 'px';
+  cursor.style.top = my + 'px';
+});
+
+function animRing() {
+  rx += (mx - rx) * 0.12;
+  ry += (my - ry) * 0.12;
+  ring.style.left = rx + 'px';
+  ring.style.top = ry + 'px';
+  requestAnimationFrame(animRing);
+}
+animRing();
+
+document.querySelectorAll('a, button, input, .feature-card, .crystal-card').forEach(el => {
+  el.addEventListener('mouseenter', () => {
+    cursor.style.width = '18px';
+    cursor.style.height = '18px';
+    ring.style.width = '52px';
+    ring.style.height = '52px';
+  });
+  el.addEventListener('mouseleave', () => {
+    cursor.style.width = '12px';
+    cursor.style.height = '12px';
+    ring.style.width = '36px';
+    ring.style.height = '36px';
+  });
+});
+
+// ---- Background Canvas: Crystals + Mouse Parallax ----
+const canvas = document.getElementById('bg-canvas');
+const ctx = canvas.getContext('2d');
+
+let W, H;
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+// Mouse position for parallax
+let mouseX = 0.5, mouseY = 0.5;
+document.addEventListener('mousemove', e => {
+  mouseX = e.clientX / window.innerWidth;
+  mouseY = e.clientY / window.innerHeight;
+});
+
+// Crystal shard definition
+class Crystal {
+  constructor() { this.reset(true); }
+
+  reset(init = false) {
+    this.x = Math.random() * 1.2 - 0.1;
+    this.y = init ? Math.random() : -0.1;
+    this.size = 18 + Math.random() * 55;
+    this.speed = 0.00012 + Math.random() * 0.00018;
+    this.angle = Math.random() * Math.PI * 2;
+    this.rotSpeed = (Math.random() - 0.5) * 0.008;
+    this.alpha = 0.03 + Math.random() * 0.12;
+    this.hue = 260 + Math.random() * 50;
+    this.depth = 0.3 + Math.random() * 0.7; // parallax depth
+    this.sides = Math.random() < 0.5 ? 6 : 4;
+    this.elongate = 0.4 + Math.random() * 1.2;
+  }
+
+  draw(ox, oy) {
+    const px = (this.x + ox * this.depth * 0.08) * W;
+    const py = (this.y + oy * this.depth * 0.08) * H;
+    ctx.save();
+    ctx.translate(px, py);
+    ctx.rotate(this.angle);
+    ctx.scale(1, this.elongate);
+    ctx.beginPath();
+    const n = this.sides;
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * Math.PI * 2;
+      const r = this.size * (i % 2 === 0 ? 1 : 0.55);
+      i === 0 ? ctx.moveTo(Math.cos(a)*r, Math.sin(a)*r)
+               : ctx.lineTo(Math.cos(a)*r, Math.sin(a)*r);
+    }
+    ctx.closePath();
+    const grad = ctx.createLinearGradient(-this.size, -this.size, this.size, this.size);
+    grad.addColorStop(0, `hsla(${this.hue}, 70%, 80%, ${this.alpha})`);
+    grad.addColorStop(0.5, `hsla(${this.hue + 20}, 60%, 55%, ${this.alpha * 0.6})`);
+    grad.addColorStop(1, `hsla(${this.hue}, 80%, 70%, ${this.alpha * 0.3})`);
+    ctx.fillStyle = grad;
+    ctx.fill();
+    ctx.strokeStyle = `hsla(${this.hue + 10}, 80%, 80%, ${this.alpha * 1.8})`;
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+    ctx.restore();
+    this.angle += this.rotSpeed;
+    this.y += this.speed;
+    if (this.y > 1.15) this.reset();
+  }
+}
+
+// Mouse glow orb
+class GlowOrb {
+  constructor() {
+    this.x = Math.random();
+    this.y = Math.random();
+    this.tx = Math.random();
+    this.ty = Math.random();
+    this.r = 80 + Math.random() * 160;
+    this.alpha = 0.04 + Math.random() * 0.08;
+    this.speed = 0.003 + Math.random() * 0.004;
+    this.hue = 270 + Math.random() * 40;
+  }
+
+  update() {
+    if (Math.abs(this.x - this.tx) < 0.01 && Math.abs(this.y - this.ty) < 0.01) {
+      this.tx = Math.random();
+      this.ty = Math.random();
+    }
+    this.x += (this.tx - this.x) * this.speed;
+    this.y += (this.ty - this.y) * this.speed;
+  }
+
+  draw() {
+    const px = this.x * W, py = this.y * H;
+    const grad = ctx.createRadialGradient(px, py, 0, px, py, this.r);
+    grad.addColorStop(0, `hsla(${this.hue}, 70%, 55%, ${this.alpha})`);
+    grad.addColorStop(1, `hsla(${this.hue}, 70%, 30%, 0)`);
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(px, py, this.r, 0, Math.PI * 2);
+    ctx.fill();
+    this.update();
+  }
+}
+
+// Mouse-following glow
+function drawMouseGlow(mx, my) {
+  const px = mx * W, py = my * H;
+  const r = 220;
+  const grad = ctx.createRadialGradient(px, py, 0, px, py, r);
+  grad.addColorStop(0, `rgba(139, 47, 201, 0.12)`);
+  grad.addColorStop(0.4, `rgba(75, 25, 120, 0.06)`);
+  grad.addColorStop(1, `rgba(0,0,0,0)`);
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(px, py, r, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+const crystals = Array.from({ length: 38 }, () => new Crystal());
+const orbs = Array.from({ length: 5 }, () => new GlowOrb());
+
+const ox = mouseX - 0.5, oy = mouseY - 0.5;
+
+function frame() {
+  ctx.clearRect(0, 0, W, H);
+
+  // ambient orbs
+  orbs.forEach(o => o.draw());
+
+  // mouse glow
+  drawMouseGlow(mouseX, mouseY);
+
+  // crystals with parallax offset
+  const offX = mouseX - 0.5;
+  const offY = mouseY - 0.5;
+  crystals.forEach(c => c.draw(offX, offY));
+
+  requestAnimationFrame(frame);
+}
+
+frame();
+</script>
+</body>
+</html>
