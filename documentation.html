@@ -746,7 +746,9 @@
 #include &lt;fstream&gt;
 #include &lt;shellapi.h&gt;
 #include &lt;cstdio&gt;
-#include &lt;dwmapi.h&gt;</pre>
+#include &lt;dwmapi.h&gt;
+#include &lt;map&gt;
+</pre>
       </div>
     </div>
 
@@ -768,7 +770,7 @@
 
       <div class="callout">
         <span class="callout-icon">◈</span>
-        <div class="Something to acknowledge:"><strong>This is NOT the latest attachment logic. This is a rough sketch we made when starting this project. Its still usable tho.</strong>  </div>
+        <div class="Something to acknowledge:"><strong>This is NOT the latest attachment logic. This is a rough sketch we made when starting this project. We unfortunately can't share the REAL attachment logic to keep Roblox away from patching our ways.</strong>  </div>
       </div>
 
       <!-- Code Block -->
@@ -817,7 +819,177 @@
     return 0;
 }
 </pre>
+</div>
+    </div>
+
+<!-- 3 -->
+
+      
+<div class="crystal-card">
+      <h2 class="card-title">
+        <div class="card-title-icon">◆</div>
+        Debugging
+      </h2>
+      <div class="card-body">
+        <p>Learn about how the ByteMagic™ Execution engine works under the hood.</p>
       </div>
+
+      <div class="callout">
+        <span class="callout-icon">◈</span>
+        <div class="Something to acknowledge:"><strong>These are just snippets! You cant make bytemagic yourself with just this.</strong> — </div>
+      </div>
+
+      <!-- Code Block -->
+       <div class="callout">
+        <span class="callout-icon">?</span>
+        <div class="Something to acknowledge:"><strong>Reading the Luau VM Bytecode Buffer.</strong></div>
+       </div>
+      <div class="code-block">
+        <div class="code-block-header">
+          <span class="code-block-lang">Includes</span>
+          <div class="code-block-dots"><span></span><span></span><span></span></div>
+        </div>
+        <pre>
+ void readbuff(HANDLE hProcess, uintptr_t address, size_t size) {
+    std::vector<unsigned char> buffer(size);
+    SIZE_T bytesRead = 0;
+
+    if (ReadProcessMemory(hProcess, (LPCVOID)address, buffer.data(), size, &bytesRead)) {
+        printf("[+] Pulled %llu bytes. Running Deep Scan now \n\n", (unsigned long long)bytesRead);
+
+        for (SIZE_T i = 0; i < bytesRead; i += 16) {
+            std::vector<unsigned char> chunk;
+            for (int j = 0; j < 16 && (i + j) < bytesRead; j++) chunk.push_back(buffer[i + j]);
+
+            // CHUNK-LEVEL BRUTE FORCE
+            unsigned char bestKey = 0;
+            int bestPrintable = -1;
+
+            for (int k = 0; k < 256; k++) {
+                int printableCount = 0;
+                for (auto b : chunk) {
+                    unsigned char decoded = b ^ k;
+                    if (decoded >= 32 && decoded <= 126) printableCount++;
+                    if (decoded == 0) printableCount += 2;
+                }
+                if (printableCount > bestPrintable) {
+                    bestPrintable = printableCount;
+                    bestKey = (unsigned char)k;
+                }
+            }
+
+            printf("%04llX [%02X] ", (unsigned long long)i, bestKey);
+            for (size_t j = 0; j < 16; j++) {
+                if (j < chunk.size()) printf("%02x ", chunk[j] ^ bestKey);
+                else printf("   ");
+            }
+            printf(" | ");
+            for (size_t j = 0; j < chunk.size(); j++) {
+                unsigned char ch = chunk[j] ^ bestKey;
+                putchar((ch >= 32 && ch <= 126) ? ch : '.');
+            }
+            printf("\n");
+        }
+    }
+    else {
+        printf("[-] RPM Failed %lu\n", GetLastError());
+    }
+}
+</pre>
+      </div>
+    </div>
+
+    <!-- 4 -->
+
+    <div class="crystal-card">
+      <h2 class="card-title">
+        <div class="card-title-icon">◆</div>
+        Bypassing
+      </h2>
+      <div class="card-body">
+        <p>Learn about how the ByteMagic™ Execution engine works under the hood.</p>
+      </div>
+
+      <div class="callout">
+        <span class="callout-icon">◈</span>
+        <div class="Something to acknowledge:"><strong>These are just snippets! You cant make bytemagic yourself with just this.</strong> — </div>
+      </div>
+
+      <!-- Code Block -->
+       <div class="callout">
+        <span class="callout-icon">?</span>
+        <div class="Something to acknowledge:"><strong>Anticheat</strong></div>
+       </div>
+      <div class="code-block">
+        <div class="code-block-header">
+          <span class="code-block-lang">Includes</span>
+          <div class="code-block-dots"><span></span><span></span><span></span></div>
+        </div>
+        <pre>
+ void SuspendProcess(DWORD pid) {
+    HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
+
+    if (snapshot == INVALID_HANDLE_VALUE) {
+        std::cerr << "[-] Failed to create snapshot. Error: " << GetLastError() << std::endl;
+        return;
+    }
+
+    THREADENTRY32 te;
+    te.dwSize = sizeof(te);
+
+    if (Thread32First(snapshot, &te)) {
+        do {
+            if (te.th32OwnerProcessID == pid) {
+                HANDLE hThread = OpenThread(THREAD_SUSPEND_RESUME, FALSE, te.th32ThreadID);
+                if (hThread) {
+                    DWORD result = SuspendThread(hThread);
+
+                    //  0xFFFFFFFF is the thing we lowkey need more of in our lives.
+                    if (result == (DWORD)-1) {
+                        std::cerr << "[-] Could not suspend thread " << te.th32ThreadID
+                            << ". Error: " << GetLastError() << std::endl;
+                    }
+
+                    CloseHandle(hThread);
+                }
+                else {
+					// its either because of admin priveleges. Or your laptop lacks enough rizz to bust inside the process lmao.
+                    std::cerr << "[-] Failed to open thread handle. Error: " << GetLastError() << std::endl;
+                }
+            }
+        } while (Thread32Next(snapshot, &te));
+    }
+
+    CloseHandle(snapshot);
+}
+
+void ResumeProcess(DWORD pid) {
+    HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
+
+    THREADENTRY32 te;
+    te.dwSize = sizeof(te); // Yeah im pretty sure its too small to satisfy any woman.
+
+    if (Thread32First(snapshot, &te)) {
+        do {
+            if (te.th32OwnerProcessID == pid) {
+                HANDLE hThread = OpenThread(THREAD_SUSPEND_RESUME, FALSE, te.th32ThreadID);
+                if (hThread) {
+                    ResumeThread(hThread);
+                    CloseHandle(hThread);
+                }
+            }
+        } while (Thread32Next(snapshot, &te));
+    }
+
+    CloseHandle(snapshot);  // OHH
+}
+</pre>
+
+      </div>
+      <div class="callout callout-warn">
+        <span class="callout-icon">!</span>
+        <div class="Something to acknowledge:"><strong>DO NOT PAUSE THE PROCESS FOR MORE THAN 2 SECONDS!! THE HYPERION ANTICHEAT'S HEARTBEAT WILL CATCH YOU IF YOURE PLANNING TO USE THIS IN YOUR OWN CODE</strong> — </div>
+</div>
     </div>
 
     <!-- CRYSTAL CARD [sec] -->
