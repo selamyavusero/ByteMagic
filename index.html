@@ -422,6 +422,26 @@
 
         <footer>
             <p>&copy; 2026 ByteMagic™. All rights reserved.</p>
+
+            <audio id="bg-audio" loop style="display:none;">
+    <source src="bgmusic.mp3" type="audio/mpeg">
+</audio> 
+
+<script>
+    const audio = document.getElementById('bg-audio');
+
+    function startAudio() {
+        audio.play().catch(e => console.log("Playback failed:", e));
+        
+        // Remove the listeners so they don't fire again
+        document.removeEventListener('click', startAudio);
+        document.removeEventListener('keydown', startAudio);
+    }
+
+    // Listen for the first click or keypress anywhere on the page
+    document.addEventListener('click', startAudio);
+    document.addEventListener('keydown', startAudio);
+</script>
         </footer>
     </div>
 
