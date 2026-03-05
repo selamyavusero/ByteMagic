@@ -1,0 +1,9 @@
+{
+  informgithub = "This file will include code for every update. i will manually add more and more code here so unnecesarry updates can be installed without any extra downloads."
+
+  code = {
+  "// Updates",
+  "// example: if i write C++ code here. It will be executed on bytemagic on the next launch. These comments are also getting executed but they dont do anything since theyre just comments.",
+  "// Anyone can view this file whenever they want. So they know exactly what the update was."
+  }
+}
